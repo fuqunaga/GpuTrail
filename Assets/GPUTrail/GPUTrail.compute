@@ -1,0 +1,90 @@
+﻿#pragma kernel CreateWidth
+#pragma kernel CreatePolygon
+
+#define NUM_THREAD_X 16
+
+struct Input
+{
+    float3 pos;
+    float time;
+};
+
+struct Vertex
+{
+    float3 pos;
+    float2 uv;
+};
+
+
+float3 _CameraPos;
+float _Life;
+float _Width;
+uint _CurrentNum;
+
+StructuredBuffer<Input> inputBuffer;
+RWStructuredBuffer<Vertex> vertexBuffer;
+
+
+[numthreads(NUM_THREAD_X,1,1)]
+void CreateWidth (uint3 id : SV_DispatchThreadID)
+{
+    if ( id.x < _CurrentNum)
+	{
+		float3 pos = inputBuffer[id.x].pos;
+
+		float3 dirPrev = float3(0,0,0);
+		float3 dirNext = float3(0,0,0);
+
+		if ( id.x > 0 )
+		{
+			float3 posPrev = inputBuffer[id.x-1].pos;
+			dirPrev = normalize(pos - posPrev);
+		}
+
+		if ( id.x < _CurrentNum - 1)
+		{
+			float3 posNext = inputBuffer[id.x+1].pos;
+			dirNext = normalize(posNext - pos);
+		}
+
+		float3 dir = normalize(dirPrev + dirNext);
+
+		float3 toCameraDir = normalize(_CameraPos - pos);
+		float3 right = normalize(cross(dir, toCameraDir)) * _Width * 0.5f;
+
+		float3 v0 = pos - right;
+		float3 v1 = pos + right;
+		//float3 v2 = posNext - right;
+		//float3 v3 = posNext + right;
+
+		uint vId = id.x * 6;
+		vertexBuffer[vId].pos = v0;
+		vertexBuffer[vId+1].pos = v1;
+
+		/*
+		vertexBuffer[vId+2].pos = v2;
+
+		vertexBuffer[vId+3].pos = v2;
+		vertexBuffer[vId+4].pos = v1;
+		vertexBuffer[vId+5].pos = v3;
+		*/
+   }
+}
+
+
+[numthreads(NUM_THREAD_X,1,1)]
+void CreatePolygon (uint3 id : SV_DispatchThreadID)
+{
+    if ( id.x < _CurrentNum-1)
+	{
+		uint vId = id.x * 6;
+		uint vIdNext = (id.x+1) * 6;
+		//vertexBuffer[vId].pos = v0;
+		//vertexBuffer[vId+1].pos = v1;
+		vertexBuffer[vId+2] = vertexBuffer[vIdNext];
+
+		vertexBuffer[vId+3] = vertexBuffer[vIdNext];
+		vertexBuffer[vId+4] = vertexBuffer[vId+1];
+		vertexBuffer[vId+5] = vertexBuffer[vIdNext+1];
+   }
+}

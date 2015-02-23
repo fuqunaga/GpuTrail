@@ -1,0 +1,46 @@
+﻿#pragma kernel CSMain
+
+
+
+
+RWStructuredBuffer<float3> posBuffer : register(u0);
+RWStructuredBuffer<float3> velBuffer : register(u1);
+RWStructuredBuffer<float3> colBuffer : register(u2);
+
+
+
+float Time;
+float4 Origin;
+float PI = 3.1415926;
+
+
+
+[numthreads(16,1,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+
+    uint Tid = id.x;    
+
+   colBuffer[Tid ].r = 0.1;
+   colBuffer[Tid ].g =1.0;
+   colBuffer[Tid ].b = 0.4;
+
+   float3 NewPos;
+
+
+   NewPos.x = Origin.x +  (sin(Time/10.0 * Tid ) ) * 30;
+   NewPos.y = Origin.y +  (cos((Time/10.0+PI ) * Tid ) ) *30;
+   NewPos.z = Origin.z +  (cos(Time /10.0 * Tid ) )*30;
+
+
+
+   velBuffer[Tid ].x  = NewPos.x - posBuffer[Tid ].x;
+   velBuffer[Tid ].y =  NewPos.y - posBuffer[Tid ].y;
+   velBuffer[Tid ].z =  NewPos.z - posBuffer[Tid ].z;
+      
+      
+   posBuffer[Tid ].x += velBuffer[Tid ].x / 40;
+   posBuffer[Tid ].y += velBuffer[Tid ].y / 40;
+   posBuffer[Tid ].z += velBuffer[Tid ].z / 40;
+   
+}
