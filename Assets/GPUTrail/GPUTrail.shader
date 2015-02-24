@@ -1,6 +1,5 @@
 ﻿Shader "Custom/GPUTrail" {
 Properties {
-   _Life("Life", float)= 1
 }
    
 SubShader {
@@ -9,6 +8,7 @@ Pass{
 	ZWrite Off
 	ZTest Always
 	Blend SrcAlpha One
+	//Blend Off
 
 
 	CGPROGRAM
@@ -23,32 +23,40 @@ Pass{
 	{
 		float3 pos;
 		float2 uv;
+		float4 color;
 	};
 
 
 	StructuredBuffer<Vertex> vertexBuffer;
-	uint _CurrentNum;
 
 
 	struct vs_out {
 		float4 pos : SV_POSITION;
 		float4 col : COLOR;
+		float2 uv  : TEXCOORD;
 	};
 
 	vs_out vert (uint id : SV_VertexID)
 	{
 		vs_out Out;
+		Vertex vtx = vertexBuffer[id];
+
 		Out.pos = mul(UNITY_MATRIX_MVP, float4(vertexBuffer[id].pos, 1.0));
-		//float life_rate = saturate((_Time.y - _InputBuffer[id].time) / _Life);
-		float life_rate = (float)id / _CurrentNum;
-		Out.col = float4(life_rate, life_rate, life_rate, 1.0);
+		float life_rate = vtx.uv.x;
+		//Out.col = float4(vtx.uv.y, abs(vtx.uv.y-1), 0, vtx.uv.x);
+		Out.col = vertexBuffer[id].color;
+
+		Out.uv = vtx.uv;
 
 		return Out;
 	}
 
 	fixed4 frag (vs_out In) : COLOR0
 	{
-		In.col.a *= 0.1;
+		if ( In.uv.x < 0 || 1 < In.uv.x ) discard;
+		//if ( In.uv.x < 0 || 1 < In.uv.x ) In.col.r = 0;
+		
+		In.col.a *= In.uv.x;
 		return In.col;
 	}
 

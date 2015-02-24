@@ -51,8 +51,8 @@ TrailRenderer:
   m_SortingLayerID: 0
   m_SortingOrder: 0
   m_Time: 100
-  m_StartWidth: 1
-  m_EndWidth: 1
+  m_StartWidth: 5
+  m_EndWidth: 5
   m_Colors:
     m_Color[0]:
       serializedVersion: 2
@@ -83,14 +83,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   material: {fileID: 2100000, guid: c1c458d860a40bc4f836b8625223124f, type: 2}
-  bufferSize: 10000
-  life: 1000
-  width: .100000001
+  bufferSize: 100
+  life: 10
+  width: 1
   minDistance: 0
-  firstIdx: 0
-  lastIdx: 0
-  currentNum: 0
+  totalInputIdx: -1
   cs: {fileID: 7200000, guid: 9c56c3b4415f6364fa47538a8e4d7069, type: 3}
+  hoge: 0
 --- !u!114 &11470254
 MonoBehaviour:
   m_ObjectHideFlags: 1
