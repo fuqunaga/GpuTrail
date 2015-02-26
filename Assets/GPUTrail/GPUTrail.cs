@@ -20,30 +20,31 @@ public class GPUTrail : MonoBehaviour {
 
 
     public Material material;
-    int bufferSize;
-    public float life;
-    public float width;
-    public float minDistance;
+    public float time = 1f;
+    public float startWidth = 1f;
+    public float endWidth = 1f;
+    public Color startColor = Color.white;
+    public Color endColor = Color.white;
+    public float minVertexDistance = 0.1f;
+    public ComputeShader cs;
 
-    public int totalInputIdx = -1;
+
+    int bufferSize;
+    int totalInputIdx = -1;
     Vector3 lastInputPos;
 
 	float startTime;
 
-    public ComputeBuffer inputBuffer;
-    public ComputeBuffer pointBuffer;
-    public ComputeBuffer vertexBuffer;
-
-
-    public ComputeShader cs;
-
+    ComputeBuffer inputBuffer;
+    ComputeBuffer pointBuffer;
+    ComputeBuffer vertexBuffer;
 
     const float FPS = 60f;
     void Start()
     {
         ReleaseBuffer();
 
-        bufferSize = Mathf.CeilToInt(life * FPS);
+        bufferSize = Mathf.CeilToInt(time * FPS);
 
         inputBuffer = new ComputeBuffer(1, System.Runtime.InteropServices.Marshal.SizeOf(typeof(Point)));
         pointBuffer = new ComputeBuffer(bufferSize, System.Runtime.InteropServices.Marshal.SizeOf(typeof(Point)));
@@ -69,7 +70,7 @@ public class GPUTrail : MonoBehaviour {
     {
         var pos = transform.position;
 
-        if ((Vector3.Distance(lastInputPos, pos) > minDistance))
+        if ((Vector3.Distance(lastInputPos, pos) > minVertexDistance))
         {
             inputBuffer.SetData(new[]{new Point()
             {
@@ -93,11 +94,14 @@ public class GPUTrail : MonoBehaviour {
         {
             var cameraPos = Camera.main.transform.position;
             cs.SetFloats("_CameraPos", cameraPos.x, cameraPos.y, cameraPos.z);
-            cs.SetFloat("_Life", Mathf.Min(life, Time.time - startTime));
-            cs.SetFloat("_Width", width);
+            cs.SetFloat("_Life", Mathf.Min(time, Time.time - startTime));
             cs.SetInt("_TotalInputIdx", totalInputIdx);
             cs.SetInt("_BufferSize", bufferSize);
             cs.SetFloat("_Time", Time.time);
+            cs.SetFloat("_StartWidth", startWidth);
+            cs.SetFloat("_EndWidth", endWidth);
+            cs.SetFloats("_StartColor", startColor.r, startColor.g, startColor.b, startColor.a);
+            cs.SetFloats("_EndColor",   endColor.r, endColor.g, endColor.b, endColor.a);
 
             var kernel = cs.FindKernel("CreateWidth");
             cs.SetBuffer(kernel, "inputBuffer", inputBuffer);
@@ -120,16 +124,12 @@ public class GPUTrail : MonoBehaviour {
         if (totalInputIdx >= 2)
         {
             material.SetBuffer("vertexBuffer", vertexBuffer);
-            //material.SetFloat("_Life", life);
-            //material.SetFloat("_CurrentNum", currentNum * 6);
             material.SetPass(0);
 
             var drawPointNum = Mathf.Min(bufferSize, totalInputIdx) - 1;
-            if (!hoge) Graphics.DrawProcedural(MeshTopology.Triangles, drawPointNum * 6);
-            else Graphics.DrawProcedural(MeshTopology.LineStrip, drawPointNum * 6);
+            Graphics.DrawProcedural(MeshTopology.Triangles, drawPointNum * 6);
         }
     }
-    public bool hoge;
 
     public void OnDestroy()
     {

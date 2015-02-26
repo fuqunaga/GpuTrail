@@ -6,10 +6,7 @@ SubShader {
 Pass{
 	Cull Off Fog { Mode Off }
 	ZWrite Off
-	ZTest Always
 	Blend SrcAlpha One
-	//Blend Off
-
 
 	CGPROGRAM
 	#pragma target 5.0
@@ -43,7 +40,6 @@ Pass{
 
 		Out.pos = mul(UNITY_MATRIX_MVP, float4(vertexBuffer[id].pos, 1.0));
 		float life_rate = vtx.uv.x;
-		//Out.col = float4(vtx.uv.y, abs(vtx.uv.y-1), 0, vtx.uv.x);
 		Out.col = vertexBuffer[id].color;
 
 		Out.uv = vtx.uv;
@@ -54,7 +50,6 @@ Pass{
 	fixed4 frag (vs_out In) : COLOR0
 	{
 		if ( In.uv.x < 0 || 1 < In.uv.x ) discard;
-		//if ( In.uv.x < 0 || 1 < In.uv.x ) In.col.r = 0;
 		
 		In.col.a *= In.uv.x;
 		return In.col;

@@ -19,10 +19,13 @@ struct Vertex
 
 float3 _CameraPos;
 float _Life;
-float _Width;
 uint _TotalInputIdx;
 uint _BufferSize;
 float _Time;
+float _StartWidth;
+float _EndWidth;
+float4 _StartColor;
+float4 _EndColor;
 
 StructuredBuffer<Point> inputBuffer;
 RWStructuredBuffer<Point> pointBuffer;
@@ -69,24 +72,23 @@ void CreateWidth (uint3 id : SV_DispatchThreadID)
 			dirNext = normalize(nextPos - pos);
 		}
 
+
+		float rate = _Life <= 0 ? 1 : 1 - ((_Time - pt.time) / _Life);
+
 		float3 dir = normalize(dirPrev + dirNext);
 
 		float3 toCameraDir = normalize(_CameraPos - pos);
-		float3 right = normalize(cross(dir, toCameraDir)) * _Width * 0.5f;
+		float3 right = normalize(cross(dir, toCameraDir)) * lerp(_EndWidth, _StartWidth, rate) * 0.5f;
 
-
-		float rate = _Life <= 0 ? 1 : 1 - ((_Time - pt.time) / _Life);
-		//float r = idx / (_BufferSize-1.0);
-		float r = (idx == _BufferSize-1) ? 1 : 0;
-		float b = (idx == 1) ? 1 : 0;
+		float4 col = lerp(_EndColor, _StartColor, rate);
 
 		v0.pos = pos - right;
 		v0.uv = float2(rate, 0);
-		v0.color = float4(r, b,1,1);
+		v0.color = col;
 
 		v1.pos = pos + right;
 		v1.uv = float2(rate, 1);
-		v1.color = float4(r, b,1,1);
+		v1.color = col;
 
 		int drawIdx = (int)inputIdx - (int)idx;
 		drawIdx = drawIdx < 0 ? (int)_BufferSize + drawIdx : drawIdx;
