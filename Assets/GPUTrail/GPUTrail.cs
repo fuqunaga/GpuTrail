@@ -42,6 +42,9 @@ public class GPUTrail : MonoBehaviour {
     const float FPS = 60f;
     void Start()
     {
+#if UNITY_EDITOR
+        //material = new Material(material); // instancing for NO modify
+#endif
         ReleaseBuffer();
 
         bufferSize = Mathf.CeilToInt(time * FPS);
@@ -87,13 +90,14 @@ public class GPUTrail : MonoBehaviour {
         UpdateVertex();
     }
 
+    protected virtual Vector3 cameraPos { get { return Camera.main.transform.position;  } }
     const int NUM_THREAD_X = 16;
     void UpdateVertex()
     {
         if (totalInputIdx >= 0)
         {
-            var cameraPos = Camera.main.transform.position;
-            cs.SetFloats("_CameraPos", cameraPos.x, cameraPos.y, cameraPos.z);
+            var cPos = cameraPos;
+            cs.SetFloats("_CameraPos", cPos.x, cPos.y, cPos.z);
             cs.SetFloat("_Life", Mathf.Min(time, Time.time - startTime));
             cs.SetInt("_TotalInputIdx", totalInputIdx);
             cs.SetInt("_BufferSize", bufferSize);
@@ -123,6 +127,7 @@ public class GPUTrail : MonoBehaviour {
     {
         if (totalInputIdx >= 2)
         {
+            setMaterilParam();
             material.SetBuffer("vertexBuffer", vertexBuffer);
             material.SetPass(0);
 
@@ -131,8 +136,14 @@ public class GPUTrail : MonoBehaviour {
         }
     }
 
+    protected virtual void setMaterilParam() { }
+
     public void OnDestroy()
     {
         ReleaseBuffer();
+
+#if UNITY_EDITOR
+        //Destroy(material);
+#endif
     }
 }
