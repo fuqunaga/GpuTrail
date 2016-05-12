@@ -16,7 +16,7 @@ public class GenerateSphere : MonoBehaviour {
             if (go)
             {
                 go.transform.SetParent(transform);
-                go.rigidbody.velocity = Random.insideUnitSphere * 10f;
+                go.GetComponent<Rigidbody>().velocity = Random.insideUnitSphere * 10f;
             }
         }
 	
@@ -33,7 +33,7 @@ public class GenerateSphere : MonoBehaviour {
             if ( go )
             {
                 go.transform.SetParent(transform);
-                go.rigidbody.velocity = Camera.main.transform.TransformVector(Quaternion.Euler(Random.Range(-30f, 10f), 0f, 0f) * Vector3.forward * Random.Range(10f, 100f));
+                go.GetComponent<Rigidbody>().velocity = Camera.main.transform.TransformVector(Quaternion.Euler(Random.Range(-30f, 10f), 0f, 0f) * Vector3.forward * Random.Range(10f, 100f));
             }
         }
     }
