@@ -104,8 +104,8 @@ public class GPUTrail : MonoBehaviour {
             cs.SetFloat("_Time", Time.time);
             cs.SetFloat("_StartWidth", startWidth);
             cs.SetFloat("_EndWidth", endWidth);
-            cs.SetFloats("_StartColor", startColor.r, startColor.g, startColor.b, startColor.a);
-            cs.SetFloats("_EndColor",   endColor.r, endColor.g, endColor.b, endColor.a);
+            cs.SetVector("_StartColor", startColor);
+            cs.SetVector("_EndColor",   endColor);
 
             var kernel = cs.FindKernel("CreateWidth");
             cs.SetBuffer(kernel, "inputBuffer", inputBuffer);

@@ -39,7 +39,6 @@ Pass{
 		Vertex vtx = vertexBuffer[id];
 
 		Out.pos = mul(UNITY_MATRIX_MVP, float4(vertexBuffer[id].pos, 1.0));
-		float life_rate = vtx.uv.x;
 		Out.col = vertexBuffer[id].color;
 
 		Out.uv = vtx.uv;
