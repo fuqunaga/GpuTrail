@@ -1,0 +1,232 @@
+﻿#pragma kernel AddNode
+#pragma kernel CreateWidth
+#pragma kernel CreatePolygon
+
+#define NUM_THREAD_X 16
+
+struct Trail
+{
+	float startTime;
+	uint totalInputNum;
+};
+
+struct Node
+{
+    float3 pos;
+    float time;
+};
+
+struct Vertex
+{
+    float3 pos;
+    float2 uv;
+	float4 color;
+};
+
+
+uint _TrailNum;
+uint _NodeNumPerTrail;
+float _Time;
+
+
+uint calcTrailIdx(uint nodeIdx)
+{
+	return nodeIdx / _NodeNumPerTrail;
+}
+uint calcNodeIdx(uint trailIdx, uint nodeIdxInTrail)
+{
+	return (trailIdx * _NodeNumPerTrail) + (nodeIdxInTrail % _NodeNumPerTrail);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// AddNode
+////////////////////////////////////////////////////////////////////////////////
+struct Input
+{
+    float3 pos;
+};
+
+StructuredBuffer<Input> _InputBuffer;
+RWStructuredBuffer<Trail> _TrailBufferW;
+RWStructuredBuffer<Node> _NodeBufferW;
+
+[numthreads(NUM_THREAD_X,1,1)]
+void AddNode (uint3 id : SV_DispatchThreadID)
+{
+	uint trailIdx = id.x;
+	if ( trailIdx < _TrailNum )
+	{
+		Trail trail = _TrailBufferW[trailIdx];
+		uint totalInputNum = trail.totalInputNum;
+
+		Node node;
+		node.pos = _InputBuffer[trailIdx].pos;
+		node.time = _Time;
+		uint nodeIdx = calcNodeIdx(trailIdx, totalInputNum);
+		_NodeBufferW[nodeIdx] = node;
+
+		trail.startTime = (totalInputNum==0) ? _Time : trail.startTime;
+		trail.totalInputNum++;
+
+		_TrailBufferW[trailIdx] = trail;
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// CreateWidth
+////////////////////////////////////////////////////////////////////////////////
+float3 _CameraPos;
+float _StartWidth;
+float _EndWidth;
+bool _UseIdx;
+
+StructuredBuffer<Trail> _TrailBuffer;
+StructuredBuffer<Node> _NodeBuffer;
+RWStructuredBuffer<Vertex> vertexBuffer;
+
+
+uint calcPrevIdxInTrail(uint idx)
+{
+	return (idx + _NodeNumPerTrail-1) % _NodeNumPerTrail;
+}
+uint calcNextIdxInTrail(uint idx)
+{
+	return (idx + 1) % _NodeNumPerTrail;
+}
+
+uint calcNodeIdxFromInTrail(uint trailIdx, uint idxInTrail)
+{
+	return trailIdx * _NodeNumPerTrail + idxInTrail;
+}
+
+Node getNode(uint trailIdx, uint idxInTrail, uint totalInputNum)
+{
+	idxInTrail = min(idxInTrail, totalInputNum-1); // 未使用ノードのIdxが指定されたら最新のノードを返す 
+	return _NodeBuffer[calcNodeIdxFromInTrail(trailIdx, idxInTrail)];
+}
+
+float3 calcNodeDir(uint trailIdx, uint nodeIdxInTrail, uint totalInputNum)
+{
+	float3 dirPrev = float3(0,0,0);
+	float3 dirNext = float3(0,0,0);
+
+	float3 pos = getNode(trailIdx, nodeIdxInTrail, totalInputNum).pos;
+
+	uint prevIdxInTrail = calcPrevIdxInTrail(nodeIdxInTrail);
+	int inputIdxInTrail = calcPrevIdxInTrail(totalInputNum);
+
+	bool prevEnable = (prevIdxInTrail != inputIdxInTrail) && (prevIdxInTrail < totalInputNum);
+	if ( prevEnable )
+	{
+		dirPrev = normalize(pos - getNode(trailIdx, prevIdxInTrail, totalInputNum).pos);
+	}
+
+	bool nextEnable = nodeIdxInTrail!= inputIdxInTrail;
+	if ( nextEnable )
+	{
+		uint nextIdxInTrail = calcNextIdxInTrail(nodeIdxInTrail);
+		dirNext = normalize(getNode(trailIdx, nextIdxInTrail, totalInputNum).pos - pos);
+	}
+
+	return  normalize(dirPrev + dirNext);
+}
+
+[numthreads(NUM_THREAD_X,1,1)]
+void CreateWidth (uint3 id : SV_DispatchThreadID)
+{
+	uint nodeIdx = id.x;
+	uint trailIdx = nodeIdx / _NodeNumPerTrail;
+	if ( trailIdx < _TrailNum )
+	{
+		Trail trail = _TrailBuffer[trailIdx];
+		uint totalInputNum = trail.totalInputNum;
+		uint nodeIdxInTrail = nodeIdx % _NodeNumPerTrail;
+
+		Vertex v0 = {float3(0,0,0), float2(-1,-1), float4(0,0,0,0)};
+		Vertex v1 = {float3(0,0,0), float2(-1,-1), float4(0,0,0,0)};
+		{
+			Node node = getNode(trailIdx, nodeIdxInTrail, totalInputNum);
+
+			float life = _Time - trail.startTime;
+			float rate = life <= 0 ? 1 : max(0, 1 - ((_Time - node.time) / life));
+
+			float3 pos = node.pos;
+			float3 dir = calcNodeDir(trailIdx, nodeIdxInTrail, totalInputNum);
+
+			float3 toCameraDir = normalize(_CameraPos - pos);
+			float3 rightDir = normalize(cross(dir, toCameraDir));
+			float  rightLength = lerp(_EndWidth, _StartWidth, rate) * 0.5f;
+			float3 right = rightDir * rightLength;
+
+			v0.pos = pos - right;
+			v0.uv = float2(rate, 0);
+
+			v1.pos = pos + right;
+			v1.uv = float2(rate, 1);
+
+			float r = (float)nodeIdxInTrail / _NodeNumPerTrail;
+			float4 c = lerp(float4(1,0,0,1), float4(0,1,0,1), r);
+			//c = (nodeIdxInTrail == 0) ? float4(1,0,0,1) : float4(0,1,0,1);
+			v0.color = c;
+			v1.color = c;
+			//if ( length(dirNext) == 0)
+			//{
+			//v0.color = float4(1,1,1,1);
+			//v1.color = float4(1,1,1,1);
+			//}
+
+		}
+
+		uint startIdxInTrail = (totalInputNum <= _NodeNumPerTrail) ? 0 : calcNextIdxInTrail(totalInputNum-1);
+		uint nodeIdxFromStartInTrail = ((nodeIdxInTrail + _NodeNumPerTrail) - startIdxInTrail) % _NodeNumPerTrail;
+		uint drawIdx = calcNodeIdxFromInTrail(trailIdx, nodeIdxFromStartInTrail);
+
+		uint vIdx = drawIdx * (_UseIdx ? 2 : 6);
+		vertexBuffer[vIdx] = v0;
+		vertexBuffer[vIdx+1] = v1;
+	}
+}
+
+[numthreads(NUM_THREAD_X,1,1)]
+void CreatePolygon (uint3 id : SV_DispatchThreadID)
+{
+	uint nodeIdx = id.x;
+	uint nodeIdxNext = nodeIdx + 1;
+	uint trailIdxNext = calcTrailIdx(nodeIdx);
+	if ( trailIdxNext < _TrailNum )
+	{
+		uint trailIdx = calcTrailIdx(nodeIdx);
+
+		uint vIdx = nodeIdx * 6;
+		uint vIdxNext = nodeIdxNext * 6;
+
+		bool nextIsInvalid = (nodeIdxNext - trailIdx * _NodeNumPerTrail) >=  _TrailBuffer[trailIdx].totalInputNum;
+		bool divide  = (trailIdx != calcTrailIdx(nodeIdxNext)) || nextIsInvalid;
+
+		//vertexBuffer[vIdx].pos = v0;
+		//vertexBuffer[vIdx+1].pos = v1;
+		if ( !divide )
+		{
+#ifdef LINE
+			vertexBuffer[vIdx+2] = vertexBuffer[vIdx+1];
+			vertexBuffer[vIdx+3] = vertexBuffer[vIdxNext];
+			vertexBuffer[vIdx+4] = vertexBuffer[vIdx];
+			vertexBuffer[vIdx+5] = vertexBuffer[vIdx];
+#else
+		   vertexBuffer[vIdx+2] = vertexBuffer[vIdxNext];
+
+		   vertexBuffer[vIdx+3] = vertexBuffer[vIdxNext];
+		   vertexBuffer[vIdx+4] = vertexBuffer[vIdx+1];
+		   vertexBuffer[vIdx+5] = vertexBuffer[vIdxNext+1];
+#endif
+		}
+		else {
+			Vertex v = vertexBuffer[vIdx];
+			v.color = float4(0,0,1,1);
+			vertexBuffer[vIdx+2] = v;
+			vertexBuffer[vIdx+3] = v;
+			vertexBuffer[vIdx+4] = v;
+			vertexBuffer[vIdx+5] = v;
+		}
+	}
+}

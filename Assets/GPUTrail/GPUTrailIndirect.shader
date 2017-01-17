@@ -1,4 +1,4 @@
-﻿Shader "Custom/GPUTrail" {
+﻿Shader "Custom/GPUTrailIndirect" {
 Properties {
 }
    
@@ -23,7 +23,8 @@ Pass{
 		float4 color;
 	};
 
-
+	int _UseIdx;
+	StructuredBuffer<uint> _Indexes;
 	StructuredBuffer<Vertex> vertexBuffer;
 
 
@@ -36,10 +37,10 @@ Pass{
 	vs_out vert (uint id : SV_VertexID)
 	{
 		vs_out Out;
-		Vertex vtx = vertexBuffer[id];
+		Vertex vtx = vertexBuffer[_UseIdx>0 ? _Indexes[id] : id];
 
-		Out.pos = mul(UNITY_MATRIX_MVP, float4(vertexBuffer[id].pos, 1.0));
-		Out.col = vertexBuffer[id].color;
+		Out.pos = mul(UNITY_MATRIX_MVP, float4(vtx.pos, 1.0));
+		Out.col = vtx.color;
 
 		Out.uv = vtx.uv;
 
