@@ -126,14 +126,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6af463c098fe7e445addb01c1c7e5c49, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  material: {fileID: 2100000, guid: c1c458d860a40bc4f836b8625223124f, type: 2}
-  time: 20
-  startWidth: 0.1
-  endWidth: 0.1
-  startColor: {r: 0.41568625, g: 1, b: 0.59472394, a: 0.5019608}
-  endColor: {r: 0.41288114, g: 0.1484352, b: 0.99607843, a: 0}
-  minVertexDistance: 0.1
-  cs: {fileID: 7200000, guid: 9c56c3b4415f6364fa47538a8e4d7069, type: 3}
+  cs: {fileID: 7200000, guid: f88322fe9ecec1e41b2a237407abddad, type: 3}
+  InputPerSec: 60
+  InputNumMax: 5
+  _lerpMode: 1
+  _life: 20
+  _startWidth: 0.1
+  _endWidth: 0.1
+  _startColor: {r: 1, g: 0, b: 0, a: 1}
+  _endColor: {r: 0, g: 0.15400028, b: 1, a: 0}
+  _minVertexDistance: 0.1
+  _material: {fileID: 2100000, guid: c1c458d860a40bc4f836b8625223124f, type: 2}
 --- !u!135 &13539478
 SphereCollider:
   m_ObjectHideFlags: 1

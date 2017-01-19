@@ -20,7 +20,6 @@ Pass{
 	{
 		float3 pos;
 		float2 uv;
-		float4 color;
 	};
 
 
@@ -38,8 +37,8 @@ Pass{
 		vs_out Out;
 		Vertex vtx = vertexBuffer[id];
 
-		Out.pos = mul(UNITY_MATRIX_MVP, float4(vertexBuffer[id].pos, 1.0));
-		Out.col = vertexBuffer[id].color;
+		Out.pos = mul(UNITY_MATRIX_MVP, float4(vtx.pos, 1.0));
+		Out.col = float4(1,0,0,1);
 
 		Out.uv = vtx.uv;
 

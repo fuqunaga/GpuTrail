@@ -1,5 +1,7 @@
 ﻿Shader "Custom/GPUTrailIndirect" {
 Properties {
+	_StartColor("StartColor", Color) = (1,1,1,1)
+	_EndColor("EndColor", Color) = (0,0,0,1)
 }
    
 SubShader {
@@ -20,10 +22,10 @@ Pass{
 	{
 		float3 pos;
 		float2 uv;
-		float4 color;
 	};
 
-	int _UseIdx;
+	fixed4 _StartColor;
+	fixed4 _EndColor;
 	StructuredBuffer<uint> _Indexes;
 	StructuredBuffer<Vertex> vertexBuffer;
 
@@ -37,21 +39,17 @@ Pass{
 	vs_out vert (uint id : SV_VertexID)
 	{
 		vs_out Out;
-		Vertex vtx = vertexBuffer[_UseIdx>0 ? _Indexes[id] : id];
+		Vertex vtx = vertexBuffer[_Indexes[id]];
 
 		Out.pos = mul(UNITY_MATRIX_MVP, float4(vtx.pos, 1.0));
-		Out.col = vtx.color;
-
 		Out.uv = vtx.uv;
+		Out.col = lerp(_EndColor, _StartColor, vtx.uv.x);
 
 		return Out;
 	}
 
 	fixed4 frag (vs_out In) : COLOR0
 	{
-		if ( In.uv.x < 0 || 1 < In.uv.x ) discard;
-		
-		//In.col.a *= In.uv.x;
 		return In.col;
 	}
 

@@ -125,3 +125,9 @@ Material:
     - first:
         name: _EmissionColor
       second: {r: 0, g: 0, b: 0, a: 1}
+    - first:
+        name: _EndColor
+      second: {r: 0, g: 0.046000004, b: 1, a: 1}
+    - first:
+        name: _StartColor
+      second: {r: 0, g: 1, b: 0.38199997, a: 1}

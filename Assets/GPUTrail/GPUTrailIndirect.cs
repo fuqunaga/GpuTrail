@@ -1,6 +1,4 @@
 ﻿using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 
@@ -21,7 +19,7 @@ public class GPUTrailIndirect : MonoBehaviour
 
     public Material material;
     public int trailNumMax = 1000;
-    public float time = 20f;
+    public float life = 20f;
     public float startWidth = 1f;
     public float endWidth = 1f;
     public Color startColor = Color.white;
@@ -35,7 +33,6 @@ public class GPUTrailIndirect : MonoBehaviour
     ComputeBuffer trailBuffer;
     ComputeBuffer nodeBuffer;
     ComputeBuffer vertexBuffer;
-    ComputeBuffer vertexBuffer2;
     ComputeBuffer indexBuffer;
 
 
@@ -44,7 +41,7 @@ public class GPUTrailIndirect : MonoBehaviour
     {
         ReleaseBuffer();
 
-        nodeNumPerTrail = Mathf.CeilToInt(time * FPS);
+        nodeNumPerTrail = Mathf.CeilToInt(life * FPS);
         var bufferSize = trailNumMax * nodeNumPerTrail;
 
         trailBuffer = new ComputeBuffer(trailNumMax, Marshal.SizeOf(typeof(Trail)));
@@ -53,13 +50,8 @@ public class GPUTrailIndirect : MonoBehaviour
         nodeBuffer = new ComputeBuffer(bufferSize, Marshal.SizeOf(typeof(GPUTrail.Point)));
         nodeBuffer.SetData(Enumerable.Repeat(default(GPUTrail.Point), bufferSize).ToArray());
 
-        vertexBuffer = new ComputeBuffer(bufferSize * 6, Marshal.SizeOf(typeof(GPUTrail.Vertex))); // 1 node to 2 triangles(6vertexs)
-        vertexBuffer.SetData(Enumerable.Repeat(default(GPUTrail.Vertex), bufferSize*6).ToArray());
-        // not initialize data. write all buffer every frame.
-
-
-        vertexBuffer2 = new ComputeBuffer(bufferSize * 2, Marshal.SizeOf(typeof(GPUTrail.Vertex))); // 1 node to 2 triangles(6vertexs)
-        vertexBuffer2.SetData(Enumerable.Repeat(default(GPUTrail.Vertex), bufferSize*2).ToArray());
+        vertexBuffer = new ComputeBuffer(bufferSize * 2, Marshal.SizeOf(typeof(GPUTrail.Vertex))); // 1 node to 2 triangles(6vertexs)
+        vertexBuffer.SetData(Enumerable.Repeat(default(GPUTrail.Vertex), bufferSize*2).ToArray());
 
 
         // 各Nodeの最後と次のNodeの最初はポリゴンを繋がないので-1
@@ -100,7 +92,7 @@ public class GPUTrailIndirect : MonoBehaviour
 
     void ReleaseBuffer()
     {
-        new[] { inputBuffer, trailBuffer, nodeBuffer, vertexBuffer, vertexBuffer2, indexBuffer }
+        new[] { inputBuffer, trailBuffer, nodeBuffer, vertexBuffer, indexBuffer }
             .Where(b => b != null)
             .ToList().ForEach(buffer =>
             {
@@ -156,35 +148,18 @@ public class GPUTrailIndirect : MonoBehaviour
         cs.SetBuffer(kernel, "_TrailBuffer", trailBuffer);
         cs.SetBuffer(kernel, "_NodeBuffer", nodeBuffer);
         cs.SetBuffer(kernel, "vertexBuffer", vertexBuffer);
-        cs.SetBool("_UseIdx", useIndex);
+        cs.SetFloat("_Life", life);
         cs.Dispatch(kernel, Mathf.CeilToInt((float)nodeBuffer.count / NUM_THREAD_X), 1, 1);
-
-        if (!useIndex)
-        {
-            kernel = cs.FindKernel("CreatePolygon");
-            cs.SetBuffer(kernel, "_TrailBuffer", trailBuffer);
-            cs.SetBuffer(kernel, "_NodeBuffer", nodeBuffer);
-            cs.SetBuffer(kernel, "vertexBuffer", vertexBuffer);
-            cs.Dispatch(kernel, Mathf.CeilToInt((float)nodeBuffer.count / NUM_THREAD_X), 1, 1);
-        }
     }
 
 
     void OnRenderObject()
     {
         setMaterilParam();
-        material.SetInt("_UseIdx", useIndex ? 1 : 0);
         material.SetBuffer("vertexBuffer", vertexBuffer);
         material.SetPass(0);
 
-        if (useIndex)
-        {
-
-            Graphics.DrawProcedural(MeshTopology.Triangles, indexBuffer.count);
-        }
-        else {
-            Graphics.DrawProcedural(MeshTopology.Triangles, vertexBuffer.count);
-        }
+       Graphics.DrawProcedural(MeshTopology.Triangles, indexBuffer.count);
     }
 
     protected virtual void setMaterilParam() { }
@@ -192,9 +167,5 @@ public class GPUTrailIndirect : MonoBehaviour
     public void OnDestroy()
     {
         ReleaseBuffer();
-
-#if UNITY_EDITOR
-        //Destroy(material);
-#endif
     }
 }
