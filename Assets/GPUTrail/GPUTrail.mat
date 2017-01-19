@@ -7,7 +7,7 @@ Material:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_Name: GPUTrail
-  m_Shader: {fileID: 4800000, guid: 9e3e48f2ac234794587c3c695ab03fe0, type: 3}
+  m_Shader: {fileID: 4800000, guid: aa7a048c89ecc5c4bad74dee290e8ac2, type: 3}
   m_ShaderKeywords: 
   m_LightmapFlags: 5
   m_CustomRenderQueue: -1
@@ -35,3 +35,9 @@ Material:
     - first:
         name: _Color
       second: {r: 1, g: 1, b: 1, a: 1}
+    - first:
+        name: _EndColor
+      second: {r: 0, g: 1, b: 0.23200011, a: 1}
+    - first:
+        name: _StartColor
+      second: {r: 1, g: 0, b: 0, a: 1}

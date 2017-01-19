@@ -338,7 +338,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &214960285
 Transform:
   m_ObjectHideFlags: 0
@@ -691,7 +691,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1451545203
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1026,7 +1026,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &1643252984
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1038,16 +1038,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 823d3c29066f5024db13a827ea33b232, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  material: {fileID: 2100000, guid: 98e724b058df6e946bcda3e36116715e, type: 2}
-  trailNumMax: 2000
-  life: 5
-  startWidth: 1
-  endWidth: 1
-  startColor: {r: 1, g: 0, b: 0, a: 1}
-  endColor: {r: 0, g: 0.1960001, b: 1, a: 1}
-  minVertexDistance: 0.1
   cs: {fileID: 7200000, guid: 5e0b0e8f0f658774f9dca7b0695eacd4, type: 3}
-  useIndex: 1
+  _material: {fileID: 2100000, guid: 98e724b058df6e946bcda3e36116715e, type: 2}
+  _life: 2
+  _startWidth: 0.1
+  _endWidth: 0.1
+  _trailNumMax: 1000
+  _nodeNumPerTrail: 1000
 --- !u!4 &1643252985
 Transform:
   m_ObjectHideFlags: 0

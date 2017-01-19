@@ -1,0 +1,22 @@
+﻿#ifndef GPUTRAIL_VARIABLES_INCLUDED
+#define GPUTRAIL_VARIABLES_INCLUDED
+
+#include "GPUTrailVertex.cginc"
+
+
+struct Node
+{
+    float3 pos;
+    float time;
+};
+
+uint _TrailNum;
+uint _NodeNumPerTrail;
+float _Time;
+float _Life;
+float3 _CameraPos;
+float _StartWidth;
+float _EndWidth;
+
+
+#endif // GPUTRAIL_VARIABLES_INCLUDED

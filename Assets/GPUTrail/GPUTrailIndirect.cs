@@ -2,7 +2,7 @@
 using System.Linq;
 using System.Runtime.InteropServices;
 
-public class GPUTrailIndirect : MonoBehaviour
+public class GPUTrailIndirect : GPUTrailBase
 {
     struct Input
     {
@@ -17,65 +17,26 @@ public class GPUTrailIndirect : MonoBehaviour
         public int totalInputNum;
     }
 
-    public Material material;
-    public int trailNumMax = 1000;
-    public float life = 20f;
-    public float startWidth = 1f;
-    public float endWidth = 1f;
-    public Color startColor = Color.white;
-    public Color endColor = Color.white;
-    public float minVertexDistance = 0.1f;
-    public ComputeShader cs;
+    ComputeBuffer _trailBuffer;
 
 
-    int nodeNumPerTrail;
+    public int _trailNumMax = 1000;
+    public int _nodeNumPerTrail = 1000;
 
-    ComputeBuffer trailBuffer;
-    ComputeBuffer nodeBuffer;
-    ComputeBuffer vertexBuffer;
-    ComputeBuffer indexBuffer;
+    protected override int trailNumMax { get { return _trailNumMax; } }
+    protected override int nodeNumPerTrail { get { return _nodeNumPerTrail; } }
 
 
     const float FPS = 60f;
-    void Start()
+    override protected void Awake()
     {
-        ReleaseBuffer();
+        _nodeNumPerTrail = Mathf.CeilToInt(_life * FPS);
 
-        nodeNumPerTrail = Mathf.CeilToInt(life * FPS);
-        var bufferSize = trailNumMax * nodeNumPerTrail;
-
-        trailBuffer = new ComputeBuffer(trailNumMax, Marshal.SizeOf(typeof(Trail)));
-        trailBuffer.SetData(Enumerable.Repeat(default(Trail), trailNumMax).ToArray());
-
-        nodeBuffer = new ComputeBuffer(bufferSize, Marshal.SizeOf(typeof(GPUTrail.Point)));
-        nodeBuffer.SetData(Enumerable.Repeat(default(GPUTrail.Point), bufferSize).ToArray());
-
-        vertexBuffer = new ComputeBuffer(bufferSize * 2, Marshal.SizeOf(typeof(GPUTrail.Vertex))); // 1 node to 2 triangles(6vertexs)
-        vertexBuffer.SetData(Enumerable.Repeat(default(GPUTrail.Vertex), bufferSize*2).ToArray());
+        base.Awake();
 
 
-        // 各Nodeの最後と次のNodeの最初はポリゴンを繋がないので-1
-        var indexData = new int[trailNumMax * (nodeNumPerTrail-1) * 6];
-        var iidx = 0;
-        for (var iTrail = 0; iTrail < trailNumMax; ++iTrail)
-        {
-			var nodeStart = iTrail * nodeNumPerTrail * 2;
-            for (var iNode = 0; iNode < nodeNumPerTrail - 1; ++iNode)
-            {
-				var offset = nodeStart + iNode * 2;
-                indexData[iidx++] = 0 + offset;
-                indexData[iidx++] = 1 + offset;
-                indexData[iidx++] = 2 + offset;
-                indexData[iidx++] = 2 + offset;
-                indexData[iidx++] = 1 + offset;
-                indexData[iidx++] = 3 + offset;
-            }
-        }
-
-        indexBuffer = new ComputeBuffer(indexData.Length, Marshal.SizeOf(typeof(uint))); // 1 node to 2 triangles(6vertexs)
-        indexBuffer.SetData(indexData);
-
-        material.SetBuffer("_Indexes", indexBuffer);
+        _trailBuffer = new ComputeBuffer(trailNumMax, Marshal.SizeOf(typeof(Trail)));
+        _trailBuffer.SetData(Enumerable.Repeat(default(Trail), trailNumMax).ToArray());
 
 
 
@@ -90,33 +51,16 @@ public class GPUTrailIndirect : MonoBehaviour
         inputBuffer = new ComputeBuffer(trailNumMax, Marshal.SizeOf(typeof(Input)));
     }
 
-    void ReleaseBuffer()
+    override protected void ReleaseBuffer()
     {
-        new[] { inputBuffer, trailBuffer, nodeBuffer, vertexBuffer, indexBuffer }
-            .Where(b => b != null)
-            .ToList().ForEach(buffer =>
-            {
-                buffer.Release();
-            });
+        base.ReleaseBuffer();
+        if (inputBuffer != null) inputBuffer.Release();
+        if (_trailBuffer != null) _trailBuffer.Release();
     }
 
-    void LateUpdate()
-    {
-        UpdateVertex();
-    }
-
-    public bool useIndex;
-
-
-
-    protected virtual Vector3 cameraPos { get { return Camera.main.transform.position; } }
     const int NUM_THREAD_X = 16;
-    void UpdateVertex()
+    protected override void UpdateVertex()
     {
-        cs.SetInt("_TrailNum", trailNumMax);
-        cs.SetInt("_NodeNumPerTrail", nodeNumPerTrail);
-        cs.SetFloat("_Time", Time.time);
-
         // AddNode
         for (var i = 0; i < inputDatas.Length; ++i)
         {
@@ -127,45 +71,21 @@ public class GPUTrailIndirect : MonoBehaviour
         inputBuffer.SetData(inputDatas);
 
 
+
+        SetCommonParameterForCS();
+
         var kernel = cs.FindKernel("AddNode");
         cs.SetBuffer(kernel, "_InputBuffer", inputBuffer);
-        cs.SetBuffer(kernel, "_TrailBufferW", trailBuffer);
-        cs.SetBuffer(kernel, "_NodeBufferW", nodeBuffer);
+        cs.SetBuffer(kernel, "_TrailBufferW", _trailBuffer);
+        cs.SetBuffer(kernel, "_NodeBufferW", _nodeBuffer);
 
-        cs.Dispatch(kernel, Mathf.CeilToInt((float)trailBuffer.count / NUM_THREAD_X), 1, 1);
-
-
+        cs.Dispatch(kernel, Mathf.CeilToInt((float)_trailBuffer.count / NUM_THREAD_X), 1, 1);
 
         // CreateWidth
-        var cPos = cameraPos;
-        cs.SetFloats("_CameraPos", cPos.x, cPos.y, cPos.z);
-        cs.SetFloat("_StartWidth", startWidth);
-        cs.SetFloat("_EndWidth", endWidth);
-        cs.SetVector("_StartColor", startColor);
-        cs.SetVector("_EndColor", endColor);
-
         kernel = cs.FindKernel("CreateWidth");
-        cs.SetBuffer(kernel, "_TrailBuffer", trailBuffer);
-        cs.SetBuffer(kernel, "_NodeBuffer", nodeBuffer);
-        cs.SetBuffer(kernel, "vertexBuffer", vertexBuffer);
-        cs.SetFloat("_Life", life);
-        cs.Dispatch(kernel, Mathf.CeilToInt((float)nodeBuffer.count / NUM_THREAD_X), 1, 1);
-    }
-
-
-    void OnRenderObject()
-    {
-        setMaterilParam();
-        material.SetBuffer("vertexBuffer", vertexBuffer);
-        material.SetPass(0);
-
-       Graphics.DrawProcedural(MeshTopology.Triangles, indexBuffer.count);
-    }
-
-    protected virtual void setMaterilParam() { }
-
-    public void OnDestroy()
-    {
-        ReleaseBuffer();
+        cs.SetBuffer(kernel, "_TrailBuffer", _trailBuffer);
+        cs.SetBuffer(kernel, "_NodeBuffer", _nodeBuffer);
+        cs.SetBuffer(kernel, "_VertexBuffer", _vertexBuffer);
+        cs.Dispatch(kernel, Mathf.CeilToInt((float)_nodeBuffer.count / NUM_THREAD_X), 1, 1);
     }
 }

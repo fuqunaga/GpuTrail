@@ -1,34 +1,15 @@
 ﻿#pragma kernel CreateWidth
-// #pragma kernel CreatePolygon
 
 #define NUM_THREAD_X 16
 
-struct Point
-{
-    float3 pos;
-    float time;
-};
+#include "GPUTrailVariables.compute"
 
-struct Vertex
-{
-    float3 pos;
-    float2 uv;
-};
-
-
-float3 _CameraPos;
-float _Life;
 int _InputNum;
 int _TotalInputIdx;
 uint _BufferSize;
-float _Time;
-float _StartWidth;
-float _EndWidth;
-float4 _StartColor;
-float4 _EndColor;
 
-StructuredBuffer<Point> inputBuffer;
-RWStructuredBuffer<Point> pointBuffer;
+StructuredBuffer<Node> inputBuffer;
+RWStructuredBuffer<Node> pointBuffer;
 RWStructuredBuffer<Vertex> vertexBuffer;
 
 
@@ -44,7 +25,7 @@ int GetInputBufIdx(int idx)
 	: -1;
 }
 
-Point GetPoint(int idx)
+Node GetNode(int idx)
 {
 	int inputBufIdx = GetInputBufIdx(idx);
 	if ( inputBufIdx >= 0 )
@@ -73,7 +54,7 @@ void CreateWidth (uint3 id : SV_DispatchThreadID)
 		Vertex v0 = {float3(0,0,0), float2(-1,-1)};
 		Vertex v1 = {float3(0,0,0), float2(-1,-1)};
 
-		Point pt = GetPoint(idx);
+		Node pt = GetNode(idx);
 		float3 pos = pt.pos;
 
 		float3 dirPrev = float3(0,0,0);
@@ -83,7 +64,7 @@ void CreateWidth (uint3 id : SV_DispatchThreadID)
 			bool prevEnable = prevIdx != inputIdxLast;
 			if ( prevEnable )
 			{
-				Point ptPrev = GetPoint(prevIdx); //pointBuffer[prevIdx];
+				Node ptPrev = GetNode(prevIdx); //pointBuffer[prevIdx];
 				dirPrev = normalize(pos - ptPrev.pos);
 			}
 
@@ -92,7 +73,7 @@ void CreateWidth (uint3 id : SV_DispatchThreadID)
 			if ( nextEnable )
 			{
 				// inputがまだpointBufferに書き込まれてない可能性を考えて直でinputBufferを見る
-				Point ptNext = GetPoint(nextIdx); //(nextIdx==inputIdxLast) ? inputBuffer[0].pos : pointBuffer[nextIdx].pos;
+				Node ptNext = GetNode(nextIdx); //(nextIdx==inputIdxLast) ? inputBuffer[0].pos : pointBuffer[nextIdx].pos;
 				dirNext = normalize(ptNext.pos - pos);
 			}
 		}
@@ -106,15 +87,11 @@ void CreateWidth (uint3 id : SV_DispatchThreadID)
 		float3 toCameraDir = normalize(_CameraPos - pos);
 		float3 right = normalize(cross(dir, toCameraDir)) * lerp(_EndWidth, _StartWidth, rate) * 0.5f;
 
-		float4 col = lerp(_EndColor, _StartColor, rate);
-
 		v0.pos = pos - right;
 		v0.uv = float2(rate, 0);
-		//v0.color = col;
 
 		v1.pos = pos + right;
 		v1.uv = float2(rate, 1);
-		//v1.color = col;
 
 		int drawIdx = inputIdxLast - (int)idx;
 		drawIdx = drawIdx < 0 ? (int)_BufferSize + drawIdx : drawIdx;
@@ -125,23 +102,3 @@ void CreateWidth (uint3 id : SV_DispatchThreadID)
 		vertexBuffer[vId+1] = v1;
 	}
 }
-
-
-/*
-[numthreads(NUM_THREAD_X,1,1)]
-void CreatePolygon (uint3 id : SV_DispatchThreadID)
-{
-	if ( id.x < min(_BufferSize, _TotalInputIdx) )
-	{
-		uint vId = id.x * 6;
-		uint vIdNext = ((id.x+1)%_BufferSize) * 6;
-		//vertexBuffer[vId].pos = v0;
-		//vertexBuffer[vId+1].pos = v1;
-		vertexBuffer[vId+2] = vertexBuffer[vIdNext];
-
-		vertexBuffer[vId+3] = vertexBuffer[vIdNext];
-		vertexBuffer[vId+4] = vertexBuffer[vId+1];
-		vertexBuffer[vId+5] = vertexBuffer[vIdNext+1];
-	}
-}
-*/

@@ -17,17 +17,13 @@ Pass{
 	#pragma fragment frag
 
 	#include "UnityCG.cginc"
+	#include "GPUTrailVertex.cginc"
 
-	struct Vertex
-	{
-		float3 pos;
-		float2 uv;
-	};
 
 	fixed4 _StartColor;
 	fixed4 _EndColor;
-	StructuredBuffer<uint> _Indexes;
-	StructuredBuffer<Vertex> vertexBuffer;
+	StructuredBuffer<uint> _IndexBuffer;
+	StructuredBuffer<Vertex> _VertexBuffer;
 
 
 	struct vs_out {
@@ -39,7 +35,7 @@ Pass{
 	vs_out vert (uint id : SV_VertexID)
 	{
 		vs_out Out;
-		Vertex vtx = vertexBuffer[_Indexes[id]];
+		Vertex vtx = _VertexBuffer[_IndexBuffer[id]];
 
 		Out.pos = mul(UNITY_MATRIX_MVP, float4(vtx.pos, 1.0));
 		Out.uv = vtx.uv;
