@@ -17,14 +17,7 @@ Pass{
 	#pragma fragment frag
 
 	#include "UnityCG.cginc"
-	#include "GPUTrailVertex.cginc"
-
-
-	fixed4 _StartColor;
-	fixed4 _EndColor;
-	StructuredBuffer<uint> _IndexBuffer;
-	StructuredBuffer<Vertex> _VertexBuffer;
-
+	#include "GPUTrailVariables.cginc"
 
 	struct vs_out {
 		float4 pos : SV_POSITION;
@@ -35,7 +28,7 @@ Pass{
 	vs_out vert (uint id : SV_VertexID)
 	{
 		vs_out Out;
-		Vertex vtx = _VertexBuffer[_IndexBuffer[id]];
+		Vertex vtx = GetVertex(id);
 
 		Out.pos = mul(UNITY_MATRIX_MVP, float4(vtx.pos, 1.0));
 		Out.uv = vtx.uv;
@@ -46,6 +39,7 @@ Pass{
 
 	fixed4 frag (vs_out In) : COLOR0
 	{
+		if (In.uv.x >= 0.999) return fixed4(0,1,0,1);
 		return In.col;
 	}
 

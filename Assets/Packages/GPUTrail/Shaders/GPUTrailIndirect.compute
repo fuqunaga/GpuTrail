@@ -3,7 +3,7 @@
 
 #define NUM_THREAD_X 16
 
-#include "GPUTrailVariables.compute"
+#include "GPUTrailVariablesCS.compute"
 
 
 struct Trail

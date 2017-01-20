@@ -128,13 +128,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   cs: {fileID: 7200000, guid: f88322fe9ecec1e41b2a237407abddad, type: 3}
   _material: {fileID: 2100000, guid: c1c458d860a40bc4f836b8625223124f, type: 2}
-  _life: 5
+  _life: 3
+  _inputPerSec: 60
+  _inputNumMax: 5
+  _lerpType: 1
+  _minNodeDistance: 0.1
   _startWidth: 0.1
   _endWidth: 0.1
-  InputPerSec: 60
-  InputNumMax: 5
-  _lerpMode: 1
-  _minVertexDistance: 0.1
+  _debugDrawLogPoint: 0
+  _debugDrawVertexBuf: 0
 --- !u!135 &13539478
 SphereCollider:
   m_ObjectHideFlags: 1

@@ -138,4 +138,36 @@ public class GPUTrail : GPUTrailBase
             cs.Dispatch(kernel, Mathf.CeilToInt((float)_nodeBuffer.count / NUM_THREAD_X), 1, 1);
         }
     }
+
+
+    public bool _debugDrawLogPoint;
+    public bool _debugDrawVertexBuf;
+
+    public void OnDrawGizmosSelected()
+    {
+        if (_debugDrawLogPoint)
+        {
+            Gizmos.color = Color.magenta;
+            _posLog.ToList().ForEach(p =>
+            {
+                Gizmos.DrawWireSphere(p, _minNodeDistance);
+            });
+        }
+
+        if (_debugDrawVertexBuf)
+        {
+            Gizmos.color = Color.yellow;
+            var data = new Vertex[_vertexBuffer.count];
+            _vertexBuffer.GetData(data);
+
+            var num = _vertexBuffer.count / 2;
+            for(var i=0; i< num; ++i)
+            {
+                var v0 = data[2*i];
+                var v1 = data[2*i +1];
+
+                Gizmos.DrawLine(v0.pos, v1.pos);
+			}
+        }
+    }
 }
