@@ -5,6 +5,12 @@ using System.Runtime.InteropServices;
 public abstract class GPUTrailBase : MonoBehaviour
 {
     #region TypeDefine
+    public enum LerpType
+    {
+        None,
+        Spline
+    }
+
 
     public struct Node
     {
@@ -23,11 +29,15 @@ public abstract class GPUTrailBase : MonoBehaviour
 
     public ComputeShader cs;
     public Material _material;
-    public float _life = 1f;
+    public float _life = 10f;
+    public float _inputPerSec = 60f;
+    public int _inputNumMax = 5;
+    public LerpType _lerpType = LerpType.Spline;
+    public float _minNodeDistance = 0.1f;
     public float _startWidth = 1f;
     public float _endWidth = 1f;
 
-    protected float _startTime;
+    protected int _nodeNumPerTrail;
 
     protected ComputeBuffer _nodeBuffer;
     protected ComputeBuffer _vertexBuffer;
@@ -35,32 +45,33 @@ public abstract class GPUTrailBase : MonoBehaviour
 
 
     protected abstract int trailNumMax { get; }
-    protected abstract int nodeNumPerTrail { get; }
-
+    
     protected virtual void Awake()
     {
         ReleaseBuffer();
+
+        _nodeNumPerTrail = Mathf.CeilToInt(_life * _inputPerSec);
         InitBuffer();
     }
 
-    protected virtual void Start()
-    {
-        _startTime = Time.time;
-    }
 
     protected virtual void InitBuffer()
     {
-        var nodeBufferSize = trailNumMax * nodeNumPerTrail;
+        var nodeBufferSize = trailNumMax * _nodeNumPerTrail;
+
         _nodeBuffer = new ComputeBuffer(nodeBufferSize, Marshal.SizeOf(typeof(Node)));
+        _nodeBuffer.SetData(Enumerable.Repeat(default(Node), _nodeBuffer.count).ToArray());
+
         _vertexBuffer = new ComputeBuffer(nodeBufferSize * 2, Marshal.SizeOf(typeof(Vertex))); // 1 node to 2 vtx(left,right)
+        _vertexBuffer.SetData(Enumerable.Repeat(default(Vertex), _vertexBuffer.count).ToArray());
 
         // 各Nodeの最後と次のNodeの最初はポリゴンを繋がないので-1
         var indexData = new int[(nodeBufferSize - 1) * 6];
         var iidx = 0;
         for (var iTrail = 0; iTrail < trailNumMax; ++iTrail)
         {
-            var nodeStart = iTrail * nodeNumPerTrail * 2;
-            for (var iNode = 0; iNode < nodeNumPerTrail - 1; ++iNode)
+            var nodeStart = iTrail * _nodeNumPerTrail * 2;
+            for (var iNode = 0; iNode < _nodeNumPerTrail - 1; ++iNode)
             {
                 var offset = nodeStart + iNode * 2;
                 indexData[iidx++] = 0 + offset;
@@ -94,9 +105,11 @@ public abstract class GPUTrailBase : MonoBehaviour
     protected void SetCommonParameterForCS()
     {
         cs.SetInt("_TrailNum", trailNumMax);
-        cs.SetInt("_NodeNumPerTrail", nodeNumPerTrail);
+        cs.SetInt("_NodeNumPerTrail", _nodeNumPerTrail);
 
-
+        cs.SetInt("_InputNodeNum", Mathf.Min(_inputNumMax, Mathf.FloorToInt(_inputNumCurrent)));
+        cs.SetInt("_LerpType", (int)_lerpType);
+        cs.SetFloat("_MinNodeDistance", _minNodeDistance);
         cs.SetFloat("_Time", Time.time);
         cs.SetFloat("_Life", _life);
 
@@ -106,9 +119,10 @@ public abstract class GPUTrailBase : MonoBehaviour
         cs.SetFloat("_EndWidth", _endWidth);
     }
 
-
+    float _inputNumCurrent;
     protected virtual void LateUpdate()
     {
+        _inputNumCurrent = Time.deltaTime * _inputPerSec + (_inputNumCurrent - Mathf.Floor(_inputNumCurrent)); // continue under dicimal
         UpdateVertex();
     }
 

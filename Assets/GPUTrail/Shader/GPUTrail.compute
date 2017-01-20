@@ -7,10 +7,11 @@
 int _InputNum;
 int _TotalInputIdx;
 uint _BufferSize;
+float _StartTime;
 
-StructuredBuffer<Node> inputBuffer;
-RWStructuredBuffer<Node> pointBuffer;
-RWStructuredBuffer<Vertex> vertexBuffer;
+StructuredBuffer<Node> _InputBuffer;
+RWStructuredBuffer<Node> _NodeBuffer;
+RWStructuredBuffer<Vertex> _VertexBuffer;
 
 
 // idx must 0~_BufferSize-1
@@ -30,59 +31,58 @@ Node GetNode(int idx)
 	int inputBufIdx = GetInputBufIdx(idx);
 	if ( inputBufIdx >= 0 )
 	{
-		return inputBuffer[inputBufIdx]; 
+		return _InputBuffer[inputBufIdx]; 
 	}
 
-	return pointBuffer[idx];
+	return _NodeBuffer[min(idx, _TotalInputIdx)]; // unused buffer is map to last input buffer
 }
 
 [numthreads(NUM_THREAD_X,1,1)]
 void CreateWidth (uint3 id : SV_DispatchThreadID)
 {
 	int idx = id.x;
-	if ( idx < min((int)_BufferSize, _TotalInputIdx+1) )
+	if ( idx < (int)_BufferSize )
 	{
 		int inputIdxLast = _TotalInputIdx % _BufferSize;
 		int inputBufIdx = GetInputBufIdx(idx);
 		if ( inputBufIdx >= 0 )
 		{
-			pointBuffer[idx] = inputBuffer[inputBufIdx];
-			if ( _TotalInputIdx == 0 ) return; // 最低2個以上（_TotalInputIdx>0 必要）
+			_NodeBuffer[idx] = _InputBuffer[inputBufIdx];
 		}
 
 
 		Vertex v0 = {float3(0,0,0), float2(-1,-1)};
 		Vertex v1 = {float3(0,0,0), float2(-1,-1)};
 
-		Node pt = GetNode(idx);
-		float3 pos = pt.pos;
+		Node node = GetNode(idx);
+		float3 pos = node.pos;
 
 		float3 dirPrev = float3(0,0,0);
 		float3 dirNext = float3(0,0,0);
+		if ( idx < _TotalInputIdx )
 		{
-			int prevIdx = (idx==0) ? _BufferSize-1 : idx-1;
-			bool prevEnable = prevIdx != inputIdxLast;
+			int prevIdx = (idx-1 +_BufferSize) % _BufferSize;
+			bool prevEnable = (prevIdx != inputIdxLast);
 			if ( prevEnable )
 			{
-				Node ptPrev = GetNode(prevIdx); //pointBuffer[prevIdx];
-				dirPrev = normalize(pos - ptPrev.pos);
+				Node nodePrev = GetNode(prevIdx);
+				dirPrev = normalize(pos - nodePrev.pos);
 			}
 
 			int nextIdx = (idx+1) % _BufferSize;
 			bool nextEnable = idx != inputIdxLast;
 			if ( nextEnable )
 			{
-				// inputがまだpointBufferに書き込まれてない可能性を考えて直でinputBufferを見る
-				Node ptNext = GetNode(nextIdx); //(nextIdx==inputIdxLast) ? inputBuffer[0].pos : pointBuffer[nextIdx].pos;
-				dirNext = normalize(ptNext.pos - pos);
+				Node nodeNext = GetNode(nextIdx);
+				dirNext = normalize(nodeNext.pos - pos);
 			}
 		}
 
 
-		float rate = _Life <= 0 ? 1 : 1 - ((_Time - pt.time) / _Life);
+		float life = min(_Life, _Time - _StartTime);
+		float rate = life <= 0 ? 1 : max(0, 1 - ((_Time - node.time) / life));
 
 		float3 dir = normalize(dirPrev + dirNext);
-		//float3 dir = float3(0,1,0);
 
 		float3 toCameraDir = normalize(_CameraPos - pos);
 		float3 right = normalize(cross(dir, toCameraDir)) * lerp(_EndWidth, _StartWidth, rate) * 0.5f;
@@ -94,11 +94,11 @@ void CreateWidth (uint3 id : SV_DispatchThreadID)
 		v1.uv = float2(rate, 1);
 
 		int drawIdx = inputIdxLast - (int)idx;
-		drawIdx = drawIdx < 0 ? (int)_BufferSize + drawIdx : drawIdx;
+		drawIdx = (drawIdx + _BufferSize) % _BufferSize;
 
 
 		uint vId = drawIdx * 2;
-		vertexBuffer[vId] = v0;
-		vertexBuffer[vId+1] = v1;
+		_VertexBuffer[vId] = v0;
+		_VertexBuffer[vId+1] = v1;
 	}
 }

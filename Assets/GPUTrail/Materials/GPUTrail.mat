@@ -37,7 +37,7 @@ Material:
       second: {r: 1, g: 1, b: 1, a: 1}
     - first:
         name: _EndColor
-      second: {r: 0, g: 1, b: 0.23200011, a: 1}
+      second: {r: 0, g: 0.86800003, b: 1, a: 0}
     - first:
         name: _StartColor
-      second: {r: 1, g: 0, b: 0, a: 1}
+      second: {r: 1, g: 0.009000003, b: 0.009000003, a: 1}

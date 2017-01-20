@@ -1,5 +1,7 @@
-﻿Shader "Custom/GPUTrail" {
+﻿Shader "GPUTrail/StartEndColor" {
 Properties {
+	_StartColor("StartColor", Color) = (1,1,1,1)
+	_EndColor("EndColor", Color) = (0,0,0,1)
 }
    
 SubShader {
@@ -15,15 +17,13 @@ Pass{
 	#pragma fragment frag
 
 	#include "UnityCG.cginc"
-
-	struct Vertex
-	{
-		float3 pos;
-		float2 uv;
-	};
+	#include "GPUTrailVertex.cginc"
 
 
-	StructuredBuffer<Vertex> vertexBuffer;
+	fixed4 _StartColor;
+	fixed4 _EndColor;
+	StructuredBuffer<uint> _IndexBuffer;
+	StructuredBuffer<Vertex> _VertexBuffer;
 
 
 	struct vs_out {
@@ -35,21 +35,17 @@ Pass{
 	vs_out vert (uint id : SV_VertexID)
 	{
 		vs_out Out;
-		Vertex vtx = vertexBuffer[id];
+		Vertex vtx = _VertexBuffer[_IndexBuffer[id]];
 
 		Out.pos = mul(UNITY_MATRIX_MVP, float4(vtx.pos, 1.0));
-		Out.col = float4(1,0,0,1);
-
 		Out.uv = vtx.uv;
+		Out.col = lerp(_EndColor, _StartColor, vtx.uv.x);
 
 		return Out;
 	}
 
 	fixed4 frag (vs_out In) : COLOR0
 	{
-		if ( In.uv.x < 0 || 1 < In.uv.x ) discard;
-		
-		//In.col.a *= In.uv.x;
 		return In.col;
 	}
 

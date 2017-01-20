@@ -3,6 +3,8 @@
 
 #include "GPUTrailVertex.cginc"
 
+#define LERP_TYPE_NONE 0
+#define LERP_TYPE_SPLINE 1
 
 struct Node
 {
@@ -12,6 +14,9 @@ struct Node
 
 uint _TrailNum;
 uint _NodeNumPerTrail;
+uint _InputNodeNum;
+uint _LerpType;
+float _MinNodeDistance;
 float _Time;
 float _Life;
 float3 _CameraPos;

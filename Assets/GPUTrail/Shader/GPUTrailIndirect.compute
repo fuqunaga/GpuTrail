@@ -25,12 +25,7 @@ uint calcNodeIdx(uint trailIdx, uint nodeIdxInTrail)
 ////////////////////////////////////////////////////////////////////////////////
 // AddNode
 ////////////////////////////////////////////////////////////////////////////////
-struct Input
-{
-    float3 pos;
-};
-
-StructuredBuffer<Input> _InputBuffer;
+StructuredBuffer<float3> _InputBuffer;
 RWStructuredBuffer<Trail> _TrailBufferW;
 RWStructuredBuffer<Node> _NodeBufferW;
 
@@ -44,7 +39,7 @@ void AddNode (uint3 id : SV_DispatchThreadID)
 		uint totalInputNum = trail.totalInputNum;
 
 		Node node;
-		node.pos = _InputBuffer[trailIdx].pos;
+		node.pos = _InputBuffer[trailIdx];
 		node.time = _Time;
 		uint nodeIdx = calcNodeIdx(trailIdx, totalInputNum);
 		_NodeBufferW[nodeIdx] = node;

@@ -7,47 +7,25 @@ using UnityEngine.Assertions;
 
 public class GPUTrail : GPUTrailBase
 {
-
-    #region TypeDefine
-
-    public enum LerpMode
-    {
-        Linear,
-        Spline
-    }
-
-    #endregion
-
-
-    public float InputPerSec = 60f;
-    public int InputNumMax = 5;
-    public LerpMode _lerpMode = LerpMode.Spline;
-    public float _minVertexDistance = 0.1f;
-
     LinkedList<Vector3> _posLog = new LinkedList<Vector3>();
-    int _nodeNum;
     int _totalInputIdx = -1;
 
     ComputeBuffer _inputBuffer;
 
-
+    protected float _startTime;
 
     protected override int trailNumMax { get { return 1; } }
-    protected override int nodeNumPerTrail { get { return _nodeNum; } }
 
     protected override void Awake()
     {
-        _nodeNum = Mathf.CeilToInt(_life * InputPerSec);
-
         base.Awake();
 
-        _inputBuffer = new ComputeBuffer(InputNumMax, Marshal.SizeOf(typeof(Node)));
+        _inputBuffer = new ComputeBuffer(_inputNumMax, Marshal.SizeOf(typeof(Node)));
     }
 
 
-    protected override void Start()
+    void Start()
     {
-        base.Start();
         _posLog.AddLast(transform.position);
     }
 
@@ -63,7 +41,7 @@ public class GPUTrail : GPUTrailBase
         var timeStep = Time.deltaTime / inputNum;
         var timePrev = Time.time - Time.deltaTime;
 
-        if (LerpMode.Spline == _lerpMode && (_posLog.Count >= 2))
+        if (LerpType.Spline == _lerpType && (_posLog.Count >= 2))
         {
             var prev = _posLog.Last.Previous.Value;
             var start = _posLog.Last.Value;
@@ -100,9 +78,9 @@ public class GPUTrail : GPUTrailBase
         var pos = transform.position;
         var posPrev = _posLog.Last();
 
-        if ((Vector3.Distance(posPrev, pos) > _minVertexDistance))
+        if ((Vector3.Distance(posPrev, pos) > _minNodeDistance))
         {
-            var inputNum = Mathf.Clamp(Mathf.FloorToInt(Time.deltaTime * InputPerSec), 1, InputNumMax);
+            var inputNum = Mathf.Clamp(Mathf.FloorToInt(Time.deltaTime * _inputPerSec), 1, _inputNumMax);
             //inputNum = 1;
 
             if (inputNum > 1)
@@ -133,7 +111,7 @@ public class GPUTrail : GPUTrailBase
     const int NUM_THREAD_X = 16;
     void _UpdateVertex(List<Node> newPoints)
     {
-        Assert.IsTrue(newPoints.Count <= InputNumMax);
+        Assert.IsTrue(newPoints.Count <= _inputNumMax);
 
         var inputNum = newPoints.Count;
         if (inputNum > 0)
@@ -149,12 +127,13 @@ public class GPUTrail : GPUTrailBase
 
             cs.SetInt("_InputNum", inputNum);
             cs.SetInt("_TotalInputIdx", _totalInputIdx);
-            cs.SetInt("_BufferSize", nodeNumPerTrail);
+            cs.SetInt("_BufferSize", _nodeNumPerTrail);
+            cs.SetFloat("_StartTime", _startTime);
 
             var kernel = cs.FindKernel("CreateWidth");
-            cs.SetBuffer(kernel, "inputBuffer", _inputBuffer);
-            cs.SetBuffer(kernel, "pointBuffer", _nodeBuffer);
-            cs.SetBuffer(kernel, "vertexBuffer", _vertexBuffer);
+            cs.SetBuffer(kernel, "_InputBuffer", _inputBuffer);
+            cs.SetBuffer(kernel, "_NodeBuffer", _nodeBuffer);
+            cs.SetBuffer(kernel, "_VertexBuffer", _vertexBuffer);
 
             cs.Dispatch(kernel, Mathf.CeilToInt((float)_nodeBuffer.count / NUM_THREAD_X), 1, 1);
         }
