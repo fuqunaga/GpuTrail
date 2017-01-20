@@ -53,7 +53,7 @@ public class GPUTrailIndirectSample : GPUTrailIndirect
         _particleCS.SetBuffer(kernel, "_ParticleBuffer", _particleBuffer);
         _particleCS.SetBuffer(kernel, "_InputBuffer", _inputBuffer);
 
-        _particleCS.Dispatch(kernel, Mathf.CeilToInt(_particleBuffer.count / NUM_THREAD_X), 1, 1);
+        _particleCS.Dispatch(kernel, Mathf.CeilToInt((float)_particleBuffer.count / NUM_THREAD_X), 1, 1);
     }
 
     protected override void ReleaseBuffer()
