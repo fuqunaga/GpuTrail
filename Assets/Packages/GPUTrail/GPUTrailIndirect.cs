@@ -17,11 +17,6 @@ public abstract class GPUTrailIndirect : GPUTrailBase
     ComputeBuffer _trailBuffer;
 
 
-    public int _trailNumMax = 1000;
-
-    protected override int trailNumMax { get { return _trailNumMax; } }
-
-
     override protected void Awake()
     {
         Assert.IsFalse(_lerpType == LerpType.Spline, "not implemented LerpType.Spline at GPUTrailIndirect.");

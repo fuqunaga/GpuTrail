@@ -12,6 +12,11 @@ public class GPUTrailIndirectSample : GPUTrailIndirect
 
     ComputeBuffer _particleBuffer;
 
+
+    public int _trailNumMax = 1000;
+
+    protected override int trailNumMax { get { return _trailNumMax; } }
+
     [Header("ParticleCS")]
     public ComputeShader _particleCS;
     public float _startSpeed = 1f;
