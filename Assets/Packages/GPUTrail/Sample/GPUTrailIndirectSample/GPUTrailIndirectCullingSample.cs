@@ -1,8 +1,7 @@
 ﻿using UnityEngine;
 using System.Runtime.InteropServices;
-using System;
 
-public class GPUTrailIndirectSample : GPUTrailIndirect
+public class GPUTrailIndirectCullingSample : GPUTrailIndirectCulling
 {
     public GPUTrailIndirectSampleParticle _particle;
 

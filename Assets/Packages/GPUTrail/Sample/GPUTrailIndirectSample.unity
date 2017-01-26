@@ -152,7 +152,7 @@ Camera:
   field of view: 60
   orthographic: 0
   orthographic size: 5
-  m_Depth: -1
+  m_Depth: 0
   m_CullingMask:
     serializedVersion: 2
     m_Bits: 4294967295
@@ -172,7 +172,7 @@ Transform:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 104940725}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -80}
+  m_LocalPosition: {x: 0, y: 0, z: -100}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 310526803}
@@ -219,7 +219,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 47e64413aeb5ae740b410d70fb05d20c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  rotSpeed: {x: 0, y: 10, z: 0}
+  rotSpeed: {x: 0, y: 1, z: 0}
 --- !u!1 &1988754119
 GameObject:
   m_ObjectHideFlags: 0
@@ -260,18 +260,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 665b0a84258e7534787071e45a68c201, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  cs: {fileID: 7200000, guid: 5e0b0e8f0f658774f9dca7b0695eacd4, type: 3}
+  _cs: {fileID: 7200000, guid: 5e0b0e8f0f658774f9dca7b0695eacd4, type: 3}
   _material: {fileID: 2100000, guid: c1c458d860a40bc4f836b8625223124f, type: 2}
   _life: 5
   _inputPerSec: 60
   _inputNumMax: 5
   _lerpType: 0
   _minNodeDistance: 0.1
-  _startWidth: 1
-  _endWidth: 1
-  _trailNumMax: 1000
-  _particleCS: {fileID: 7200000, guid: 16daaa733f6a1194394beb0d2f0d6fb9, type: 3}
-  _startSpeed: 0.05
-  _forceRate: 0.01
-  _gravity: 0.0005
-  _bounds: {x: 40, y: 40, z: 40}
+  _startWidth: 0.1
+  _endWidth: 0.1
+  _particle:
+    _particleCS: {fileID: 7200000, guid: 16daaa733f6a1194394beb0d2f0d6fb9, type: 3}
+    _particleNum: 10000
+    _startSpeed: 1
+    _forceRate: 0.15
+    _damping: 0.95
+    _gravity: 0.001
+    _bounds: {x: 100, y: 50, z: 100}

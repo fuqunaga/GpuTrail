@@ -1,26 +1,10 @@
 ﻿#pragma kernel AddNode
 #pragma kernel CreateWidth
 
-#define NUM_THREAD_X 16
+#define NUM_THREAD_X 32
 
 #include "GPUTrailVariablesCS.compute"
 
-
-struct Trail
-{
-	float startTime;
-	uint totalInputNum;
-};
-
-
-uint calcTrailIdx(uint nodeIdx)
-{
-	return nodeIdx / _NodeNumPerTrail;
-}
-uint calcNodeIdx(uint trailIdx, uint nodeIdxInTrail)
-{
-	return (trailIdx * _NodeNumPerTrail) + (nodeIdxInTrail % _NodeNumPerTrail);
-}
 
 ////////////////////////////////////////////////////////////////////////////////
 // AddNode

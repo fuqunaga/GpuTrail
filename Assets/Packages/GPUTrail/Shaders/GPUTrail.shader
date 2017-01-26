@@ -12,6 +12,7 @@ Pass{
 
 	CGPROGRAM
 	#pragma target 5.0
+	#pragma shader_feature GPUTRAIL_TRAIL_INDEX_ON
 
 	#pragma vertex vert
 	#pragma fragment frag
@@ -25,10 +26,10 @@ Pass{
 		float2 uv  : TEXCOORD;
 	};
 
-	vs_out vert (uint id : SV_VertexID)
+	vs_out vert (uint id : SV_VertexID, uint iId : SV_InstanceID)
 	{
 		vs_out Out;
-		Vertex vtx = GetVertex(id);
+		Vertex vtx = GetVertex(id, iId);
 
 		Out.pos = mul(UNITY_MATRIX_MVP, float4(vtx.pos, 1.0));
 		Out.uv = vtx.uv;
@@ -39,7 +40,6 @@ Pass{
 
 	fixed4 frag (vs_out In) : COLOR0
 	{
-		if (In.uv.x >= 0.999) return fixed4(0,1,0,1);
 		return In.col;
 	}
 

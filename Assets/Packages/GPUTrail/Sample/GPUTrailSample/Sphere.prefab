@@ -126,7 +126,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6af463c098fe7e445addb01c1c7e5c49, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  cs: {fileID: 7200000, guid: f88322fe9ecec1e41b2a237407abddad, type: 3}
+  _cs: {fileID: 7200000, guid: f88322fe9ecec1e41b2a237407abddad, type: 3}
   _material: {fileID: 2100000, guid: c1c458d860a40bc4f836b8625223124f, type: 2}
   _life: 3
   _inputPerSec: 60

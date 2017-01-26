@@ -10,6 +10,7 @@ struct Particle
 
 float _Time;
 float _ForceRate;
+float _Damping;
 float _Gravity;
 float3 _Bounds;
 RWStructuredBuffer<Particle> _ParticleBuffer;
@@ -25,12 +26,13 @@ void CSMain (uint3 id : SV_DispatchThreadID)
 	uint idx = id.x;
 
 	Particle particle = _ParticleBuffer[idx];
-	float3 velocity = particle.velocity + float3
-	(
+	float3 force = float3 (
 			rand(float2(idx, _Time  )) - 0.5, 
 			rand(float2(idx, _Time*2)) - 0.5, 
 			rand(float2(idx, _Time*3)) - 0.5
-	) * _ForceRate;
+			);
+
+	float3 velocity = particle.velocity * _Damping +  force * _ForceRate;
 
 	velocity.y -= _Gravity;
 

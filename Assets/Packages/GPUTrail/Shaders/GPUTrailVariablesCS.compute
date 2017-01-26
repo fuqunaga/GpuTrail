@@ -3,8 +3,15 @@
 
 #include "GPUTrailVertex.cginc"
 
-#define LERP_TYPE_NONE 0
-#define LERP_TYPE_SPLINE 1
+// #define LERP_TYPE_NONE 0
+// #define LERP_TYPE_SPLINE 1
+
+struct Trail
+{
+	float startTime;
+	uint totalInputNum;
+};
+
 
 struct Node
 {
@@ -15,13 +22,22 @@ struct Node
 uint _TrailNum;
 uint _NodeNumPerTrail;
 uint _InputNodeNum;
-uint _LerpType;
-float _MinNodeDistance;
+// uint _LerpType;
+//float _MinNodeDistance;
 float _Time;
 float _Life;
 float3 _CameraPos;
 float _StartWidth;
 float _EndWidth;
 
+
+uint calcTrailIdx(uint nodeIdx)
+{
+	return nodeIdx / _NodeNumPerTrail;
+}
+uint calcNodeIdx(uint trailIdx, uint nodeIdxInTrail)
+{
+	return (trailIdx * _NodeNumPerTrail) + (nodeIdxInTrail % _NodeNumPerTrail);
+}
 
 #endif // GPUTRAIL_VARIABLES_CS_INCLUDED

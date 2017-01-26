@@ -27,7 +27,7 @@ public abstract class GPUTrailBase : MonoBehaviour
     #endregion
 
 
-    public ComputeShader cs;
+    public ComputeShader _cs;
     public Material _material;
     public float _life = 10f;
     public float _inputPerSec = 60f;
@@ -45,7 +45,12 @@ public abstract class GPUTrailBase : MonoBehaviour
 
 
     protected abstract int trailNumMax { get; }
-    
+    public int nodeBufferSize { get { return trailNumMax * _nodeNumPerTrail; } }
+    public int vertexBufferSize { get { return nodeBufferSize * 2; } }
+
+    public int vertexNumPerTrail { get { return _nodeNumPerTrail * 2; } }
+    public int indexNumPerTrail { get { return (_nodeNumPerTrail - 1) * 6; } }
+
     protected virtual void Awake()
     {
         ReleaseBuffer();
@@ -57,30 +62,24 @@ public abstract class GPUTrailBase : MonoBehaviour
 
     protected virtual void InitBuffer()
     {
-        var nodeBufferSize = trailNumMax * _nodeNumPerTrail;
-
         _nodeBuffer = new ComputeBuffer(nodeBufferSize, Marshal.SizeOf(typeof(Node)));
         _nodeBuffer.SetData(Enumerable.Repeat(default(Node), _nodeBuffer.count).ToArray());
 
-        _vertexBuffer = new ComputeBuffer(nodeBufferSize * 2, Marshal.SizeOf(typeof(Vertex))); // 1 node to 2 vtx(left,right)
+        _vertexBuffer = new ComputeBuffer(vertexBufferSize, Marshal.SizeOf(typeof(Vertex))); // 1 node to 2 vtx(left,right)
         _vertexBuffer.SetData(Enumerable.Repeat(default(Vertex), _vertexBuffer.count).ToArray());
 
         // 各Nodeの最後と次のNodeの最初はポリゴンを繋がないので-1
-        var indexData = new int[(nodeBufferSize - 1) * 6];
+        var indexData = new int[indexNumPerTrail];
         var iidx = 0;
-        for (var iTrail = 0; iTrail < trailNumMax; ++iTrail)
+        for (var iNode = 0; iNode < _nodeNumPerTrail - 1; ++iNode)
         {
-            var nodeStart = iTrail * _nodeNumPerTrail * 2;
-            for (var iNode = 0; iNode < _nodeNumPerTrail - 1; ++iNode)
-            {
-                var offset = nodeStart + iNode * 2;
-                indexData[iidx++] = 0 + offset;
-                indexData[iidx++] = 1 + offset;
-                indexData[iidx++] = 2 + offset;
-                indexData[iidx++] = 2 + offset;
-                indexData[iidx++] = 1 + offset;
-                indexData[iidx++] = 3 + offset;
-            }
+            var offset = +iNode * 2;
+            indexData[iidx++] = 0 + offset;
+            indexData[iidx++] = 1 + offset;
+            indexData[iidx++] = 2 + offset;
+            indexData[iidx++] = 2 + offset;
+            indexData[iidx++] = 1 + offset;
+            indexData[iidx++] = 3 + offset;
         }
 
         _indexBuffer = new ComputeBuffer(indexData.Length, Marshal.SizeOf(typeof(uint))); // 1 node to 2 triangles(6vertexs)
@@ -104,12 +103,16 @@ public abstract class GPUTrailBase : MonoBehaviour
 
     protected void SetCommonParameterForCS()
     {
+        _SetCommonParameterForCS(_cs);
+    }
+     protected void _SetCommonParameterForCS(ComputeShader cs)
+    { 
         cs.SetInt("_TrailNum", trailNumMax);
         cs.SetInt("_NodeNumPerTrail", _nodeNumPerTrail);
 
         cs.SetInt("_InputNodeNum", Mathf.Min(_inputNumMax, Mathf.FloorToInt(_inputNumCurrent)));
-        cs.SetInt("_LerpType", (int)_lerpType);
-        cs.SetFloat("_MinNodeDistance", _minNodeDistance);
+        //cs.SetInt("_LerpType", (int)_lerpType);
+        //cs.SetFloat("_MinNodeDistance", _minNodeDistance);
         cs.SetFloat("_Time", Time.time);
         cs.SetFloat("_Life", _life);
 
@@ -140,25 +143,23 @@ public abstract class GPUTrailBase : MonoBehaviour
     }
 
 
-    protected virtual void setMaterilParam() { }
+    protected virtual void setMaterialParam() { }
+    protected virtual void setCommonMaterialParam()
+    {
+        setMaterialParam();
+        _material.SetInt("_VertexNumPerTrail", vertexNumPerTrail);
+        _material.SetBuffer("_IndexBuffer", _indexBuffer);
+        _material.SetBuffer("_VertexBuffer", _vertexBuffer);
+    }
 
     protected virtual void OnRenderObjectInternal()
     {
-        setMaterilParam();
-        _material.SetBuffer("_IndexBuffer", _indexBuffer);
-        _material.SetBuffer("_VertexBuffer", _vertexBuffer);
+        setCommonMaterialParam();
+
+        _material.DisableKeyword("GPUTRAIL_TRAIL_INDEX_ON");
         _material.SetPass(0);
 
-        /*
-        var drawPointNum = Mathf.Min(_bufferSize, _totalInputIdx) - 1;
-        var vertexCount = drawPointNum * 6;
-        */
-        Graphics.DrawProcedural(MeshTopology.Triangles, _indexBuffer.count);
-
-        /*
-        _material.SetPass(1);
-        Graphics.DrawProcedural(MeshTopology.Triangles, vertexCount);
-        */
+        Graphics.DrawProcedural(MeshTopology.Triangles, _indexBuffer.count, trailNumMax);
     }
 
     public void OnDestroy()

@@ -1,0 +1,100 @@
+﻿#pragma kernel ClearIsInView
+#pragma kernel UpdateIsInView
+#pragma kernel UpdateTrailAppend
+#pragma kernel CopyVertex
+
+#define NUM_THREAD_X 32
+
+#include "GPUTrailVariablesCS.compute"
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Clear/UpdateIsInView
+////////////////////////////////////////////////////////////////////////////////
+RWStructuredBuffer<bool> _IsInViewW;
+
+[numthreads(NUM_THREAD_X,1,1)]
+void ClearIsInView (uint3 id : SV_DispatchThreadID)
+{
+	uint trailIdx = id.x;
+	if ( trailIdx < _TrailNum )
+	{
+		_IsInViewW[trailIdx] = false;
+	}
+}
+
+float4x3 _CameraFrustumNormals;
+StructuredBuffer<Node> _NodeBuffer;
+
+[numthreads(NUM_THREAD_X,1,1)]
+void UpdateIsInView (uint3 id : SV_DispatchThreadID)
+{
+	uint nodeIdx = id.x;
+	uint trailIdx = calcTrailIdx(nodeIdx);
+	if ( trailIdx < _TrailNum )
+	{
+		Node node = _NodeBuffer[nodeIdx];
+		if ( node.time > 0)
+		{
+			// CheckCulling!
+			float3 posFromCamera = node.pos - _CameraPos;
+			float width = max(_StartWidth, _EndWidth);
+
+			if ( 
+					(dot(_CameraFrustumNormals[0], posFromCamera) > -width ) 
+					&& (dot(_CameraFrustumNormals[1], posFromCamera) > -width )
+					&& (dot(_CameraFrustumNormals[2], posFromCamera) > -width )
+					&& (dot(_CameraFrustumNormals[3], posFromCamera) > -width )
+			   )
+			{
+				_IsInViewW[trailIdx] = true;
+			}
+		}
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// UpdateTrailAppend
+////////////////////////////////////////////////////////////////////////////////
+StructuredBuffer<bool> _IsInView;
+AppendStructuredBuffer<uint> _IsInViewAppend;
+
+[numthreads(NUM_THREAD_X,1,1)]
+void UpdateTrailAppend (uint3 id : SV_DispatchThreadID)
+{
+	uint trailIdx = id.x;
+	if ( trailIdx < _TrailNum )
+	{
+		if ( _IsInView[trailIdx] ) _IsInViewAppend.Append(trailIdx);
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// CopyVertex
+////////////////////////////////////////////////////////////////////////////////
+StructuredBuffer<uint> _IsInViewIdxs;
+StructuredBuffer<Vertex> _VertexBufferSrc;
+RWStructuredBuffer<Vertex> _VertexBufferDst;
+
+[numthreads(NUM_THREAD_X,1,1)]
+void CopyVertex (uint3 id : SV_DispatchThreadID)
+{
+	uint vertexIdx = id.x;
+	uint nodeIdx = vertexIdx / 2;
+	uint isInViewIdx = calcTrailIdx(nodeIdx);
+
+	uint numStruct;
+	uint stride;
+	_IsInViewIdxs.GetDimensions(numStruct, stride);
+	if ( isInViewIdx < numStruct )
+	{
+		uint trailIdx = _IsInViewIdxs[isInViewIdx];
+		//uint trailIdx = isInViewIdx;
+		uint nodeIdxInTrail  = nodeIdx % _NodeNumPerTrail;
+		uint nodeIdxSrc = calcNodeIdx(trailIdx, nodeIdxInTrail);
+		uint vertexIdxSrc = nodeIdxSrc * 2 + vertexIdx % 2;
+
+		_VertexBufferDst[vertexIdx] = _VertexBufferSrc[vertexIdxSrc];
+	}
+
+}

@@ -125,17 +125,17 @@ public class GPUTrail : GPUTrailBase
         {
             SetCommonParameterForCS();
 
-            cs.SetInt("_InputNum", inputNum);
-            cs.SetInt("_TotalInputIdx", _totalInputIdx);
-            cs.SetInt("_BufferSize", _nodeNumPerTrail);
-            cs.SetFloat("_StartTime", _startTime);
+            _cs.SetInt("_InputNum", inputNum);
+            _cs.SetInt("_TotalInputIdx", _totalInputIdx);
+            _cs.SetInt("_BufferSize", _nodeNumPerTrail);
+            _cs.SetFloat("_StartTime", _startTime);
 
-            var kernel = cs.FindKernel("CreateWidth");
-            cs.SetBuffer(kernel, "_InputBuffer", _inputBuffer);
-            cs.SetBuffer(kernel, "_NodeBuffer", _nodeBuffer);
-            cs.SetBuffer(kernel, "_VertexBuffer", _vertexBuffer);
+            var kernel = _cs.FindKernel("CreateWidth");
+            _cs.SetBuffer(kernel, "_InputBuffer", _inputBuffer);
+            _cs.SetBuffer(kernel, "_NodeBuffer", _nodeBuffer);
+            _cs.SetBuffer(kernel, "_VertexBuffer", _vertexBuffer);
 
-            cs.Dispatch(kernel, Mathf.CeilToInt((float)_nodeBuffer.count / NUM_THREAD_X), 1, 1);
+            _cs.Dispatch(kernel, Mathf.CeilToInt((float)_nodeBuffer.count / NUM_THREAD_X), 1, 1);
         }
     }
 
