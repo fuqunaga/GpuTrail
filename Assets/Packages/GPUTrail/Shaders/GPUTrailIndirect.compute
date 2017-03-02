@@ -21,17 +21,22 @@ void AddNode (uint3 id : SV_DispatchThreadID)
 	{
 		Trail trail = _TrailBufferW[trailIdx];
 		uint totalInputNum = trail.totalInputNum;
+		bool isFirst = (totalInputNum==0);
 
-		Node node;
-		node.pos = _InputBuffer[trailIdx];
-		node.time = _Time;
-		uint nodeIdx = calcNodeIdx(trailIdx, totalInputNum);
-		_NodeBufferW[nodeIdx] = node;
+		float3 pos = _InputBuffer[trailIdx];
+		if ( isFirst || (_MinNodeDistance <= distance(pos, _NodeBufferW[calcNodeIdx(trailIdx, totalInputNum-1)].pos)))
+		{
+			Node node;
+			node.pos = pos;
+			node.time = _Time;
+			uint nodeIdx = calcNodeIdx(trailIdx, totalInputNum);
+			_NodeBufferW[nodeIdx] = node;
 
-		trail.startTime = (totalInputNum==0) ? _Time : trail.startTime;
-		trail.totalInputNum++;
+			trail.startTime = isFirst ? _Time : trail.startTime;
+			trail.totalInputNum++;
 
-		_TrailBufferW[trailIdx] = trail;
+			_TrailBufferW[trailIdx] = trail;
+		}
 	}
 }
 

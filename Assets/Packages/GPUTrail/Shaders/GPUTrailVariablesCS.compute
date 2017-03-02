@@ -23,7 +23,7 @@ uint _TrailNum;
 uint _NodeNumPerTrail;
 uint _InputNodeNum;
 // uint _LerpType;
-//float _MinNodeDistance;
+float _MinNodeDistance;
 float _Time;
 float _Life;
 float3 _CameraPos;

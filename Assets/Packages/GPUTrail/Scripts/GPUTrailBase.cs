@@ -112,7 +112,7 @@ public abstract class GPUTrailBase : MonoBehaviour
 
         cs.SetInt("_InputNodeNum", Mathf.Min(_inputNumMax, Mathf.FloorToInt(_inputNumCurrent)));
         //cs.SetInt("_LerpType", (int)_lerpType);
-        //cs.SetFloat("_MinNodeDistance", _minNodeDistance);
+        cs.SetFloat("_MinNodeDistance", _minNodeDistance);
         cs.SetFloat("_Time", Time.time);
         cs.SetFloat("_Life", _life);
 
