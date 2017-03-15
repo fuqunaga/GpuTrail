@@ -4,4 +4,4 @@ ComputeShader Trail for Unity
 
 Require DX11
 
-![screenshot](https://raw.githubusercontent.com/fuqunaga/fuqunaga.github.io/master/GPUTrail/screenshot.png)
+[![](http://img.youtube.com/vi/-HyQjG8obGM/0.jpg)](http://www.youtube.com/watch?v=-HyQjG8obGM)
