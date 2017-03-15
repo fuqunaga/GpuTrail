@@ -1,0 +1,56 @@
+﻿#pragma kernel CSMain
+
+#define NUM_THREAD_X 16
+
+struct Particle
+{
+	float3 velocity;
+	float3 pos;
+};
+
+float _Time;
+float _ForceRate;
+float _Damping;
+float _Gravity;
+float3 _Bounds;
+RWStructuredBuffer<Particle> _ParticleBuffer;
+RWStructuredBuffer<float3> _InputBuffer;
+
+float rand(float2 co){
+    return frac(sin(dot(co.xy ,float2(12.9898,78.233))) * 43758.5453);
+}
+
+[numthreads(NUM_THREAD_X,1,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+	uint idx = id.x;
+
+	Particle particle = _ParticleBuffer[idx];
+	float3 force = float3 (
+			rand(float2(idx, _Time  )) - 0.5, 
+			rand(float2(idx, _Time*2)) - 0.5, 
+			rand(float2(idx, _Time*3)) - 0.5
+			);
+
+	float3 velocity = particle.velocity * _Damping +  force * _ForceRate;
+
+	velocity.y -= _Gravity;
+
+	float3 pos = particle.pos + velocity;
+
+	float3 overPlus = pos - _Bounds;
+	if ( overPlus.x > 0) { pos.x = _Bounds.x;  velocity.x *= -0.95;}
+	if ( overPlus.y > 0) { pos.y = _Bounds.y;  velocity.y *= -0.95;}
+	if ( overPlus.z > 0) { pos.z = _Bounds.z;  velocity.z *= -0.95;}
+
+	float3 overMinus = pos + _Bounds;
+	if ( overMinus.x < 0){ pos.x = -_Bounds.x; velocity.x *= -0.95;}
+	if ( overMinus.y < 0){ pos.y = -_Bounds.y; velocity.y *= -0.95;}
+	if ( overMinus.z < 0){ pos.z = -_Bounds.z; velocity.z *= -0.95;}
+
+	particle.pos = pos;
+	particle.velocity = velocity;
+	_ParticleBuffer[idx] = particle;
+	
+	_InputBuffer[idx] = particle.pos;
+}

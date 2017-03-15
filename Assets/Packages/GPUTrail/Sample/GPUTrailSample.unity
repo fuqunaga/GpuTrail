@@ -421,6 +421,48 @@ Transform:
   m_Father: {fileID: 214960285}
   m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1001 &567255964
+Prefab:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 439478, guid: 34e81c32db6482d4c82c12160b1d7071, type: 2}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 439478, guid: 34e81c32db6482d4c82c12160b1d7071, type: 2}
+      propertyPath: m_LocalPosition.y
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 439478, guid: 34e81c32db6482d4c82c12160b1d7071, type: 2}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 439478, guid: 34e81c32db6482d4c82c12160b1d7071, type: 2}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 439478, guid: 34e81c32db6482d4c82c12160b1d7071, type: 2}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 439478, guid: 34e81c32db6482d4c82c12160b1d7071, type: 2}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 439478, guid: 34e81c32db6482d4c82c12160b1d7071, type: 2}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 439478, guid: 34e81c32db6482d4c82c12160b1d7071, type: 2}
+      propertyPath: m_RootOrder
+      value: 3
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+  m_ParentPrefab: {fileID: 100100000, guid: 34e81c32db6482d4c82c12160b1d7071, type: 2}
+  m_IsPrefabParent: 0
 --- !u!1 &1072976961
 GameObject:
   m_ObjectHideFlags: 0
@@ -504,52 +546,6 @@ Transform:
   m_Father: {fileID: 214960285}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1001 &1267504133
-Prefab:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    m_TransformParent: {fileID: 0}
-    m_Modifications:
-    - target: {fileID: 439478, guid: 34e81c32db6482d4c82c12160b1d7071, type: 2}
-      propertyPath: m_LocalPosition.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 439478, guid: 34e81c32db6482d4c82c12160b1d7071, type: 2}
-      propertyPath: m_LocalPosition.y
-      value: 5
-      objectReference: {fileID: 0}
-    - target: {fileID: 439478, guid: 34e81c32db6482d4c82c12160b1d7071, type: 2}
-      propertyPath: m_LocalPosition.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 439478, guid: 34e81c32db6482d4c82c12160b1d7071, type: 2}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 439478, guid: 34e81c32db6482d4c82c12160b1d7071, type: 2}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 439478, guid: 34e81c32db6482d4c82c12160b1d7071, type: 2}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 439478, guid: 34e81c32db6482d4c82c12160b1d7071, type: 2}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 439478, guid: 34e81c32db6482d4c82c12160b1d7071, type: 2}
-      propertyPath: m_RootOrder
-      value: 3
-      objectReference: {fileID: 0}
-    - target: {fileID: 11439478, guid: 34e81c32db6482d4c82c12160b1d7071, type: 2}
-      propertyPath: minVertexDistance
-      value: 0.1
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-  m_ParentPrefab: {fileID: 100100000, guid: 34e81c32db6482d4c82c12160b1d7071, type: 2}
-  m_IsPrefabParent: 0
 --- !u!1 &1451545202
 GameObject:
   m_ObjectHideFlags: 0
@@ -578,7 +574,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   prefab: {fileID: 139478, guid: 34e81c32db6482d4c82c12160b1d7071, type: 2}
-  num: 10
+  num: 1
   radius: 4
 --- !u!4 &1451545204
 Transform:
