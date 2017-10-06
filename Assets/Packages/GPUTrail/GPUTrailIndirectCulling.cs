@@ -69,7 +69,7 @@ public abstract class GPUTrailIndirectCulling : GPUTrailIndirect
     protected override void OnRenderObjectInternal()
     {
         var cam = Camera.current;
-        if (_cullingEnable)
+        if (_cullingEnable && !cam.orthographic)
         {
             if (!_cameraDatas.ContainsKey(cam))
             {
@@ -105,7 +105,7 @@ public abstract class GPUTrailIndirectCulling : GPUTrailIndirect
         {
             _cameraDatas.Keys.Where(cam => cam == null).ToList().ForEach(cam => _cameraDatas.Remove(cam));
             _cameraDatas.Keys
-                .Where(cam => cam.isActiveAndEnabled)
+                .Where(cam => cam.isActiveAndEnabled && !cam.orthographic)
                 .ToList().ForEach(cam =>
             {
                 UpdateVertexBuffer(cam);
