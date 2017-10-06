@@ -1,4 +1,6 @@
-﻿Shader "GPUTrail/StartEndColor" {
+﻿// Upgrade NOTE: replaced 'mul(UNITY_MATRIX_MVP,*)' with 'UnityObjectToClipPos(*)'
+
+Shader "GPUTrail/StartEndColor" {
 Properties {
 	_StartColor("StartColor", Color) = (1,1,1,1)
 	_EndColor("EndColor", Color) = (0,0,0,1)
@@ -31,7 +33,7 @@ Pass{
 		vs_out Out;
 		Vertex vtx = GetVertex(id, iId);
 
-		Out.pos = mul(UNITY_MATRIX_MVP, float4(vtx.pos, 1.0));
+		Out.pos = UnityObjectToClipPos(float4(vtx.pos, 1.0));
 		Out.uv = vtx.uv;
 		Out.col = lerp(_EndColor, _StartColor, vtx.uv.x);
 
