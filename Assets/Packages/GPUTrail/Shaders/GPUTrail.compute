@@ -51,8 +51,8 @@ void CreateWidth (uint3 id : SV_DispatchThreadID)
 		}
 
 
-		Vertex v0 = {float3(0,0,0), float2(-1,-1)};
-		Vertex v1 = {float3(0,0,0), float2(-1,-1)};
+		Vertex v0 = GetDefaultVertex();
+		Vertex v1 = GetDefaultVertex();
 
 		Node node = GetNode(idx);
 		float3 pos = node.pos;
@@ -84,14 +84,16 @@ void CreateWidth (uint3 id : SV_DispatchThreadID)
 
 		float3 dir = normalize(dirPrev + dirNext);
 
-		float3 toCameraDir = normalize(_CameraPos - pos);
+		float3 toCameraDir = calcToCameraDir(pos);
 		float3 right = normalize(cross(dir, toCameraDir)) * lerp(_EndWidth, _StartWidth, rate) * 0.5f;
 
 		v0.pos = pos - right;
 		v0.uv = float2(rate, 0);
+		v0.color = node.color;
 
 		v1.pos = pos + right;
 		v1.uv = float2(rate, 1);
+		v1.color = node.color;
 
 		int drawIdx = inputIdxLast - (int)idx;
 		drawIdx = (drawIdx + _BufferSize) % _BufferSize;

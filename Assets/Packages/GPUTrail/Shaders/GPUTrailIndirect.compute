@@ -5,11 +5,10 @@
 
 #include "GPUTrailVariablesCS.compute"
 
-
 ////////////////////////////////////////////////////////////////////////////////
 // AddNode
 ////////////////////////////////////////////////////////////////////////////////
-StructuredBuffer<float3> _InputBuffer;
+StructuredBuffer<InputData> _InputBuffer;
 RWStructuredBuffer<Trail> _TrailBufferW;
 RWStructuredBuffer<Node> _NodeBufferW;
 
@@ -23,12 +22,13 @@ void AddNode (uint3 id : SV_DispatchThreadID)
 		uint totalInputNum = trail.totalInputNum;
 		bool isFirst = (totalInputNum==0);
 
-		float3 pos = _InputBuffer[trailIdx];
-		if ( isFirst || (_MinNodeDistance <= distance(pos, _NodeBufferW[calcNodeIdx(trailIdx, totalInputNum-1)].pos)))
+		InputData inputData = _InputBuffer[trailIdx];
+		if ( isFirst || (_MinNodeDistance <= distance(inputData.pos, _NodeBufferW[calcNodeIdx(trailIdx, totalInputNum-1)].pos)))
 		{
 			Node node;
-			node.pos = pos;
+			node.pos = inputData.pos;
 			node.time = _Time;
+			node.color = inputData.color;
 			uint nodeIdx = calcNodeIdx(trailIdx, totalInputNum);
 			_NodeBufferW[nodeIdx] = node;
 
@@ -105,8 +105,8 @@ void CreateWidth (uint3 id : SV_DispatchThreadID)
 		uint totalInputNum = trail.totalInputNum;
 		uint nodeIdxInTrail = nodeIdx % _NodeNumPerTrail;
 
-		Vertex v0 = {float3(0,0,0), float2(-1,-1)};
-		Vertex v1 = {float3(0,0,0), float2(-1,-1)};
+		Vertex v0 = GetDefaultVertex();
+		Vertex v1 = GetDefaultVertex();
 		{
 			Node node = getNode(trailIdx, nodeIdxInTrail, totalInputNum);
 
@@ -116,14 +116,16 @@ void CreateWidth (uint3 id : SV_DispatchThreadID)
 			float3 pos = node.pos;
 			float3 dir = calcNodeDir(trailIdx, nodeIdxInTrail, totalInputNum);
 
-			float3 toCameraDir = normalize(_CameraPos - pos);
+			float3 toCameraDir = calcToCameraDir(pos);
 			float3 right = normalize(cross(dir, toCameraDir)) * lerp(_EndWidth, _StartWidth, rate) * 0.5f;
 
 			v0.pos = pos - right;
 			v0.uv = float2(rate, 0);
+			v0.color = node.color;
 
 			v1.pos = pos + right;
 			v1.uv = float2(rate, 1);
+			v1.color = node.color;
 		}
 
 		uint startIdxInTrail = (totalInputNum <= _NodeNumPerTrail) ? 0 : calcNextIdxInTrail(totalInputNum-1);

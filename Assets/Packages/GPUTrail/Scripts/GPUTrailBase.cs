@@ -16,12 +16,14 @@ public abstract class GPUTrailBase : MonoBehaviour
     {
         public Vector3 pos;
         public float time;
+        public Color color;
     }
 
     public struct Vertex
     {
         public Vector3 pos;
         public Vector2 uv;
+        public Color color;
     }
 
     #endregion
@@ -97,16 +99,18 @@ public abstract class GPUTrailBase : MonoBehaviour
                 buffer.Release();
             });
     }
-    
 
+
+    protected virtual bool isCameraOrthographic { get { return Camera.main.orthographic; } }
+    protected virtual Vector3 toOrthographicCameraDir { get { return -Camera.main.transform.forward; } }
     protected virtual Vector3 cameraPos { get { return Camera.main.transform.position; } }
 
     protected void SetCommonParameterForCS()
     {
         _SetCommonParameterForCS(_cs);
     }
-     protected void _SetCommonParameterForCS(ComputeShader cs)
-    { 
+    protected void _SetCommonParameterForCS(ComputeShader cs)
+    {
         cs.SetInt("_TrailNum", trailNumMax);
         cs.SetInt("_NodeNumPerTrail", _nodeNumPerTrail);
 
@@ -116,8 +120,8 @@ public abstract class GPUTrailBase : MonoBehaviour
         cs.SetFloat("_Time", Time.time);
         cs.SetFloat("_Life", _life);
 
-        var cPos = cameraPos;
-        cs.SetFloats("_CameraPos", cPos.x, cPos.y, cPos.z);
+        cs.SetVector("_ToCameraDir", isCameraOrthographic ? toOrthographicCameraDir : Vector3.zero);
+        cs.SetVector("_CameraPos", cameraPos);
         cs.SetFloat("_StartWidth", _startWidth);
         cs.SetFloat("_EndWidth", _endWidth);
     }
@@ -134,7 +138,7 @@ public abstract class GPUTrailBase : MonoBehaviour
 
     void OnRenderObject()
     {
-        if ( (Camera.current.cullingMask & (1 << gameObject.layer)) == 0)
+        if ((Camera.current.cullingMask & (1 << gameObject.layer)) == 0)
         {
             return;
         }

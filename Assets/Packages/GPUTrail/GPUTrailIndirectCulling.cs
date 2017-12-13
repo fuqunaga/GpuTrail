@@ -41,11 +41,13 @@ public abstract class GPUTrailIndirectCulling : GPUTrailIndirect
             cs.Dispatch(kernel, Mathf.CeilToInt((float)_trailIsInViews.count / NUM_THREAD_X), 1, 1);
 
             kernel = cs.FindKernel("UpdateIsInView");
+
             var planes = GeometryUtility.CalculateFrustumPlanes(camera);
             var normals = planes.Take(4).Select(p => p.normal).ToList();
             planes.Take(4).ToList().ForEach(plane => Debug.DrawRay(camera.transform.position, plane.normal* 10f));
             var normalsFloat = Enumerable.Range(0, 3).SelectMany(i => normals.Select(n => n[i])).ToArray(); // row major -> column major
             cs.SetFloats("_CameraFrustumNormals", normalsFloat);
+
             cs.SetBuffer(kernel, "_IsInViewW", _trailIsInViews);
             cs.SetBuffer(kernel, "_NodeBuffer", nodeBuffer);
             cs.Dispatch(kernel, Mathf.CeilToInt((float)nodeBuffer.count / NUM_THREAD_X), 1, 1);
@@ -105,7 +107,7 @@ public abstract class GPUTrailIndirectCulling : GPUTrailIndirect
         {
             _cameraDatas.Keys.Where(cam => cam == null).ToList().ForEach(cam => _cameraDatas.Remove(cam));
             _cameraDatas.Keys
-                .Where(cam => cam.isActiveAndEnabled && !cam.orthographic)
+                .Where(cam => cam.isActiveAndEnabled)
                 .ToList().ForEach(cam =>
             {
                 UpdateVertexBuffer(cam);

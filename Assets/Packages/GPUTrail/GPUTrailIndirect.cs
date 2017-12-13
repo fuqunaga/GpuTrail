@@ -11,6 +11,13 @@ public abstract class GPUTrailIndirect : GPUTrailBase
         public float startTime;
         public int totalInputNum;
     }
+
+
+    public struct InputData
+    {
+        public Vector3 position;
+        public Color color;
+    }
     #endregion
 
     protected ComputeBuffer _inputBuffer;
@@ -26,7 +33,7 @@ public abstract class GPUTrailIndirect : GPUTrailBase
         _trailBuffer = new ComputeBuffer(trailNumMax, Marshal.SizeOf(typeof(Trail)));
         _trailBuffer.SetData(Enumerable.Repeat(default(Trail), trailNumMax).ToArray());
 
-        _inputBuffer = new ComputeBuffer(trailNumMax, Marshal.SizeOf(typeof(Vector3)));
+        _inputBuffer = new ComputeBuffer(trailNumMax, Marshal.SizeOf(typeof(InputData)));
     }
 
     override protected void ReleaseBuffer()
