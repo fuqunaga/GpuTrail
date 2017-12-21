@@ -38,6 +38,7 @@ public abstract class GPUTrailBase : MonoBehaviour
     public float _minNodeDistance = 0.1f;
     public float _startWidth = 1f;
     public float _endWidth = 1f;
+    public bool _draw = true;
 
     protected int _nodeNumPerTrail;
 
@@ -138,12 +139,15 @@ public abstract class GPUTrailBase : MonoBehaviour
 
     void OnRenderObject()
     {
-        if ((Camera.current.cullingMask & (1 << gameObject.layer)) == 0)
+        if (_draw)
         {
-            return;
-        }
+            if ((Camera.current.cullingMask & (1 << gameObject.layer)) == 0)
+            {
+                return;
+            }
 
-        OnRenderObjectInternal();
+            OnRenderObjectInternal();
+        }
     }
 
 
