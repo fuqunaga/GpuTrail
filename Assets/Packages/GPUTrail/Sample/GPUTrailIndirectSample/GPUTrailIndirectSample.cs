@@ -23,9 +23,10 @@ public class GPUTrailIndirectSample : GPUTrailIndirect
 
 
 
-    protected override void UpdateInputBuffer()
+    protected override bool UpdateInputBuffer()
     {
         _particle.UpdateInputBuffer(_inputBuffer);
+        return true;
     }
 
     protected override void ReleaseBuffer()

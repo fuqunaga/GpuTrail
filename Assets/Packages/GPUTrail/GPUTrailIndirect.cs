@@ -49,22 +49,24 @@ public abstract class GPUTrailIndirect : GPUTrailBase
         // AddNode
         SetCommonParameterForCS();
 
-        UpdateInputBuffer();
+        var success = UpdateInputBuffer();
+        if (success)
+        {
+            var kernel = _cs.FindKernel("AddNode");
+            _cs.SetBuffer(kernel, "_InputBuffer", _inputBuffer);
+            _cs.SetBuffer(kernel, "_TrailBufferW", _trailBuffer);
+            _cs.SetBuffer(kernel, "_NodeBufferW", _nodeBuffer);
 
-        var kernel = _cs.FindKernel("AddNode");
-        _cs.SetBuffer(kernel, "_InputBuffer", _inputBuffer);
-        _cs.SetBuffer(kernel, "_TrailBufferW", _trailBuffer);
-        _cs.SetBuffer(kernel, "_NodeBufferW", _nodeBuffer);
+            _cs.Dispatch(kernel, Mathf.CeilToInt((float)_trailBuffer.count / NUM_THREAD_X), 1, 1);
 
-        _cs.Dispatch(kernel, Mathf.CeilToInt((float)_trailBuffer.count / NUM_THREAD_X), 1, 1);
-
-        // CreateWidth
-        kernel = _cs.FindKernel("CreateWidth");
-        _cs.SetBuffer(kernel, "_TrailBuffer", _trailBuffer);
-        _cs.SetBuffer(kernel, "_NodeBuffer", _nodeBuffer);
-        _cs.SetBuffer(kernel, "_VertexBuffer", _vertexBuffer);
-        _cs.Dispatch(kernel, Mathf.CeilToInt((float)_nodeBuffer.count / NUM_THREAD_X), 1, 1);
+            // CreateWidth
+            kernel = _cs.FindKernel("CreateWidth");
+            _cs.SetBuffer(kernel, "_TrailBuffer", _trailBuffer);
+            _cs.SetBuffer(kernel, "_NodeBuffer", _nodeBuffer);
+            _cs.SetBuffer(kernel, "_VertexBuffer", _vertexBuffer);
+            _cs.Dispatch(kernel, Mathf.CeilToInt((float)_nodeBuffer.count / NUM_THREAD_X), 1, 1);
+        }
     }
 
-    protected abstract void UpdateInputBuffer();
+    protected abstract bool UpdateInputBuffer();
 }
