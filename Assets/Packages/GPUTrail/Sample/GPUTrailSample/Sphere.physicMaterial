@@ -3,14 +3,11 @@
 --- !u!134 &13400000
 PhysicMaterial:
   m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
+  m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_Name: Sphere
   dynamicFriction: 0
   staticFriction: 0
-  bounciness: 1
+  bounciness: 0.9
   frictionCombine: 0
-  bounceCombine: 0
-  frictionDirection2: {x: 0, y: 0, z: 0}
-  dynamicFriction2: 0
-  staticFriction2: 0
+  bounceCombine: 3

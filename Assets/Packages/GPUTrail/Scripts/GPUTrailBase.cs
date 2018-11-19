@@ -30,7 +30,7 @@ public abstract class GPUTrailBase : MonoBehaviour
 
 
     public ComputeShader _cs;
-    public Material _material;
+    public Material _materialShared;
     public float _life = 10f;
     public float _inputPerSec = 60f;
     public int _inputNumMax = 5;
@@ -46,6 +46,7 @@ public abstract class GPUTrailBase : MonoBehaviour
     protected ComputeBuffer _vertexBuffer;
     protected ComputeBuffer _indexBuffer;
 
+    protected Material _material;
 
     protected abstract int trailNumMax { get; }
     public int nodeBufferSize { get { return trailNumMax * _nodeNumPerTrail; } }
@@ -60,6 +61,8 @@ public abstract class GPUTrailBase : MonoBehaviour
 
         _nodeNumPerTrail = Mathf.CeilToInt(_life * _inputPerSec);
         InitBuffer();
+
+        _material = new Material(_materialShared);
     }
 
 
@@ -173,5 +176,7 @@ public abstract class GPUTrailBase : MonoBehaviour
     public void OnDestroy()
     {
         ReleaseBuffer();
+
+        Destroy(_material);
     }
 }
