@@ -4,11 +4,11 @@
 Material:
   serializedVersion: 6
   m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
+  m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_Name: GPUTrail
   m_Shader: {fileID: 4800000, guid: aa7a048c89ecc5c4bad74dee290e8ac2, type: 3}
-  m_ShaderKeywords: 
+  m_ShaderKeywords: GPUTRAIL_TRAIL_INDEX_ON
   m_LightmapFlags: 5
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
