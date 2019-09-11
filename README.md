@@ -1,6 +1,6 @@
 # GPUTrail
 
-Trails with ComputeShader implementtaion for Unity
+Trails with ComputeShader implementation for Unity
 
 ![](https://github.com/fuqunaga/GPUTrail/blob/master/Document/capture.gif)
 
