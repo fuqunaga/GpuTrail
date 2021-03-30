@@ -1,7 +1,7 @@
 ﻿#pragma kernel AddNode
 #pragma kernel CreateWidth
 
-#define NUM_THREAD_X 32
+#define NUM_THREAD_X 512
 
 #include "GPUTrailVariablesCS.compute"
 

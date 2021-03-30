@@ -43,7 +43,6 @@ public abstract class GPUTrailIndirect : GPUTrailBase
         if (_trailBuffer != null) _trailBuffer.Release();
     }
 
-    const int NUM_THREAD_X = 32;
     protected override void UpdateVertex()
     {
         // AddNode
@@ -56,15 +55,21 @@ public abstract class GPUTrailIndirect : GPUTrailBase
             _cs.SetBuffer(kernel, "_InputBuffer", _inputBuffer);
             _cs.SetBuffer(kernel, "_TrailBufferW", _trailBuffer);
             _cs.SetBuffer(kernel, "_NodeBufferW", _nodeBuffer);
-
-            _cs.Dispatch(kernel, Mathf.CeilToInt((float)_trailBuffer.count / NUM_THREAD_X), 1, 1);
+            Dispatch(_cs, kernel, _nodeBuffer.count);
 
             // CreateWidth
             kernel = _cs.FindKernel("CreateWidth");
             _cs.SetBuffer(kernel, "_TrailBuffer", _trailBuffer);
             _cs.SetBuffer(kernel, "_NodeBuffer", _nodeBuffer);
             _cs.SetBuffer(kernel, "_VertexBuffer", _vertexBuffer);
-            _cs.Dispatch(kernel, Mathf.CeilToInt((float)_nodeBuffer.count / NUM_THREAD_X), 1, 1);
+            Dispatch(_cs, kernel, _nodeBuffer.count);
+        }
+        
+        static void Dispatch(ComputeShader cs, int kernel, int numThread)
+        {
+            cs.GetKernelThreadGroupSizes(kernel, out var x, out var _, out var _);
+
+            cs.Dispatch(kernel, Mathf.CeilToInt((float)numThread / x), 1, 1);
         }
     }
 

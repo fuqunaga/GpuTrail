@@ -3,7 +3,7 @@
 #pragma kernel UpdateTrailAppend
 #pragma kernel CopyVertex
 
-#define NUM_THREAD_X 32
+#define NUM_THREAD_X 512
 
 #include "GPUTrailVariablesCS.compute"
 

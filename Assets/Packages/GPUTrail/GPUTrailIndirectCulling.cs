@@ -33,12 +33,11 @@ public abstract class GPUTrailIndirectCulling : GPUTrailIndirect
             .ForEach(b => b.Release());
         }
 
-        const int NUM_THREAD_X = 32;
         public void Update(ComputeShader cs, Camera camera, ComputeBuffer nodeBuffer, ComputeBuffer vertexBufferOrig)
         {
             var kernel = cs.FindKernel("ClearIsInView");
             cs.SetBuffer(kernel, "_IsInViewW", _trailIsInViews);
-            cs.Dispatch(kernel, Mathf.CeilToInt((float)_trailIsInViews.count / NUM_THREAD_X), 1, 1);
+            Dispatch(cs, kernel, _trailIsInViews.count);
 
             kernel = cs.FindKernel("UpdateIsInView");
 
@@ -50,7 +49,7 @@ public abstract class GPUTrailIndirectCulling : GPUTrailIndirect
 
             cs.SetBuffer(kernel, "_IsInViewW", _trailIsInViews);
             cs.SetBuffer(kernel, "_NodeBuffer", nodeBuffer);
-            cs.Dispatch(kernel, Mathf.CeilToInt((float)nodeBuffer.count / NUM_THREAD_X), 1, 1);
+            Dispatch(cs, kernel, nodeBuffer.count);
 
 
             _trailIsInViewsAppend.SetCounterValue(0);
@@ -58,9 +57,16 @@ public abstract class GPUTrailIndirectCulling : GPUTrailIndirect
             kernel = cs.FindKernel("UpdateTrailAppend");
             cs.SetBuffer(kernel, "_IsInView", _trailIsInViews);
             cs.SetBuffer(kernel, "_IsInViewAppend", _trailIsInViewsAppend);
-            cs.Dispatch(kernel, Mathf.CeilToInt((float)_trailIsInViews.count / NUM_THREAD_X), 1, 1);
+            Dispatch(cs, kernel, _trailIsInViews.count);
 
             ComputeBuffer.CopyCount(_trailIsInViewsAppend, _trailIsInViewArgs, 4); // int[4]{ indexNumPerNode, trailNum, 0, 0}
+
+            static void Dispatch(ComputeShader cs, int kernel, int numThread)
+            {
+                cs.GetKernelThreadGroupSizes(kernel, out var x, out var _, out var _);
+
+                cs.Dispatch(kernel, Mathf.CeilToInt((float)numThread / x), 1, 1);
+            }
         }
     }
     #endregion
