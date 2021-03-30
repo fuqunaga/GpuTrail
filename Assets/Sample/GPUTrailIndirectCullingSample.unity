@@ -621,7 +621,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _cs: {fileID: 7200000, guid: 365dde5f666348548b6a22b895af03ad, type: 3}
-  _materialShared: {fileID: 2100000, guid: 5f6e1cac686a9714e9048568cfe33abf, type: 2}
+  _material: {fileID: 2100000, guid: 5f6e1cac686a9714e9048568cfe33abf, type: 2}
   _life: 1
   _inputPerSec: 60
   _inputNumMax: 5
@@ -629,8 +629,7 @@ MonoBehaviour:
   _minNodeDistance: 0.1
   _startWidth: 0.05
   _endWidth: 0.05
-  _draw: 1
-  _cullingCS: {fileID: 7200000, guid: a7672897b2c7f0a4c8bae2e5682d9cc6, type: 3}
+  _cullingCS: {fileID: 7200000, guid: 4d2092e994db09747aba3bb6375f54c7, type: 3}
   _cullingEnable: 1
   _particle:
     _particleCS: {fileID: 7200000, guid: 16daaa733f6a1194394beb0d2f0d6fb9, type: 3}

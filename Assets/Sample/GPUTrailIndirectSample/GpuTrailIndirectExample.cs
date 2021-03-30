@@ -1,6 +1,6 @@
 ﻿namespace GpuTrail.Example
 {
-    public class GpuTrailIndirectExample : GpuTrailIndirect
+    public class GpuTrailIndirectExample : GPUTrailIndirect
     {
         public GpuTrailIndirectSampleParticle _particle;
 

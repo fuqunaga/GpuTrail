@@ -3,8 +3,8 @@
 
 #include "GPUTrailVertex.cginc"
 
-fixed4 _StartColor;
-fixed4 _EndColor;
+float4 _StartColor;
+float4 _EndColor;
 uint _VertexNumPerTrail;
 StructuredBuffer<uint> _IndexBuffer;
 StructuredBuffer<Vertex> _VertexBuffer;

@@ -7,7 +7,7 @@ using System.Collections.Generic;
 /// GPUTrailIndirectCulling
 /// cull processing for many camera(same position because GPUTrail faces one point)
 /// </summary>
-public abstract class GPUTrailIndirectCulling : GpuTrailIndirect
+public abstract class GPUTrailIndirectCulling : GPUTrailIndirect
 {
     #region TypeDefine
     public class Data
@@ -52,6 +52,7 @@ public abstract class GPUTrailIndirectCulling : GpuTrailIndirect
             Dispatch(cs, kernel, nodeBuffer.count);
 
 
+
             _trailIsInViewsAppend.SetCounterValue(0);
 
             kernel = cs.FindKernel("UpdateTrailAppend");
@@ -89,7 +90,7 @@ public abstract class GPUTrailIndirectCulling : GpuTrailIndirect
                 {
 
                     _material.EnableKeyword("GPUTRAIL_TRAIL_INDEX_ON");
-                    setCommonMaterialParam();
+                    SetCommonMaterialParam();
 
                     _material.SetBuffer("_TrailIndexBuffer", data._trailIsInViewsAppend);
                     _material.SetPass(0);

@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Linq;
 using System.Runtime.InteropServices;
+using UnityEngine.Rendering;
 
 public abstract class GPUTrailBase : MonoBehaviour
 {
@@ -30,7 +31,7 @@ public abstract class GPUTrailBase : MonoBehaviour
 
 
     public ComputeShader _cs;
-    public Material _materialShared;
+    public Material _material;
     public float _life = 10f;
     public float _inputPerSec = 60f;
     public int _inputNumMax = 5;
@@ -38,7 +39,6 @@ public abstract class GPUTrailBase : MonoBehaviour
     public float _minNodeDistance = 0.1f;
     public float _startWidth = 1f;
     public float _endWidth = 1f;
-    public bool _draw = true;
 
     protected int _nodeNumPerTrail;
 
@@ -46,7 +46,8 @@ public abstract class GPUTrailBase : MonoBehaviour
     protected ComputeBuffer _vertexBuffer;
     protected ComputeBuffer _indexBuffer;
 
-    protected Material _material;
+    protected Camera currentCamera;
+
 
     protected abstract int trailNumMax { get; }
     public int nodeBufferSize { get { return trailNumMax * _nodeNumPerTrail; } }
@@ -55,14 +56,28 @@ public abstract class GPUTrailBase : MonoBehaviour
     public int vertexNumPerTrail { get { return _nodeNumPerTrail * 2; } }
     public int indexNumPerTrail { get { return (_nodeNumPerTrail - 1) * 6; } }
 
+
+    void OnEnable()
+    {
+        RenderPipelineManager.beginCameraRendering += OnBeginCameraRendering;
+    }
+
+    void OnDisable()
+    {
+        RenderPipelineManager.beginCameraRendering -= OnBeginCameraRendering;
+    }
+
     protected virtual void Awake()
     {
         ReleaseBuffer();
 
         _nodeNumPerTrail = Mathf.CeilToInt(_life * _inputPerSec);
-        InitBuffer();
+        if (_inputPerSec < Application.targetFrameRate)
+        {
+            Debug.LogWarning($"inputPerSec({_inputPerSec}) < targetFps({Application.targetFrameRate}): Trai adds a node every frame, so running at TargetFrameRate will overflow the buffer.");
+        }
 
-        _material = new Material(_materialShared);
+        InitBuffer();
     }
 
 
@@ -139,25 +154,33 @@ public abstract class GPUTrailBase : MonoBehaviour
 
     protected abstract void UpdateVertex();
 
-
     void OnRenderObject()
     {
-        if (_draw)
+        if (Camera.current != null)
         {
-            if ((Camera.current.cullingMask & (1 << gameObject.layer)) == 0)
-            {
-                return;
-            }
-
-            OnRenderObjectInternal();
+            currentCamera = Camera.current;
         }
+
+        if ((currentCamera == null) || (currentCamera.cullingMask & (1 << gameObject.layer)) == 0)
+        {
+            return;
+        }
+
+        OnRenderObjectInternal();
     }
 
 
-    protected virtual void setMaterialParam() { }
-    protected virtual void setCommonMaterialParam()
+    private void OnBeginCameraRendering(ScriptableRenderContext context, Camera camera)
     {
-        setMaterialParam();
+        currentCamera = camera;
+    }
+
+
+
+    protected virtual void SetMaterialParam() { }
+    protected virtual void SetCommonMaterialParam()
+    {
+        SetMaterialParam();
         _material.SetInt("_VertexNumPerTrail", vertexNumPerTrail);
         _material.SetBuffer("_IndexBuffer", _indexBuffer);
         _material.SetBuffer("_VertexBuffer", _vertexBuffer);
@@ -165,7 +188,7 @@ public abstract class GPUTrailBase : MonoBehaviour
 
     protected virtual void OnRenderObjectInternal()
     {
-        setCommonMaterialParam();
+        SetCommonMaterialParam();
 
         _material.DisableKeyword("GPUTRAIL_TRAIL_INDEX_ON");
         _material.SetPass(0);
@@ -176,7 +199,5 @@ public abstract class GPUTrailBase : MonoBehaviour
     public void OnDestroy()
     {
         ReleaseBuffer();
-
-        Destroy(_material);
     }
 }
