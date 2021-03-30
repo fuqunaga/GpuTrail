@@ -1,8 +1,8 @@
 ﻿#ifndef GPUTRAIL_VARIABLES_CS_INCLUDED
 #define GPUTRAIL_VARIABLES_CS_INCLUDED
 
-#include "GPUTrailInput.cginc"
-#include "GPUTrailVertex.cginc"
+#include "GpuTrailInput.cginc"
+#include "GpuTrailVertex.cginc"
 
 // #define LERP_TYPE_NONE 0
 // #define LERP_TYPE_SPLINE 1

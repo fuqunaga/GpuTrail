@@ -2,7 +2,7 @@
 
 #define NUM_THREAD_X 16
 
-#include "GPUTrailVariablesCS.compute"
+#include "GpuTrailVariablesCS.compute"
 
 int _InputNum;
 int _TotalInputIdx;

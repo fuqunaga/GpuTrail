@@ -18,7 +18,7 @@ Pass{
 	#pragma fragment frag
 
 	#include "UnityCG.cginc"
-	#include "GPUTrailVariables.cginc"
+	#include "GpuTrailVariables.cginc"
 
 	struct vs_out {
 		float4 pos : SV_POSITION;

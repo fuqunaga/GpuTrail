@@ -1,13 +1,12 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
 using System.Linq;
-using UnityEngine.Assertions;
-using System.Collections.Generic;
+using UnityEngine;
 
 /// <summary>
-/// GPUTrailIndirectCulling
+/// GpuTrailIndirectCulling
 /// cull processing for many camera(same position because GPUTrail faces one point)
 /// </summary>
-public abstract class GPUTrailIndirectCulling : GPUTrailIndirect
+public abstract class GpuTrailIndirectCulling : GpuTrailIndirect
 {
     #region TypeDefine
     public class Data

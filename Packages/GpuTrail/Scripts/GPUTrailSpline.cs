@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class GPUTrailSpline : MonoBehaviour
+public class GpuTrailSpline : MonoBehaviour
 {
     /// <summary>
     /// start～end をつなぐ曲線上の点をtに応じて求める

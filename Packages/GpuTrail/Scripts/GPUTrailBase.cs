@@ -3,7 +3,8 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using UnityEngine.Rendering;
 
-public abstract class GPUTrailBase : MonoBehaviour
+
+public abstract class GpuTrailBase : MonoBehaviour
 {
     #region TypeDefine
     public enum LerpType

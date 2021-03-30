@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 using UnityEngine;
 using UnityEngine.Assertions;
 
-public class GPUTrail : GPUTrailBase
+public class GpuTrail : GpuTrailBase
 {
     LinkedList<Vector3> _posLog = new LinkedList<Vector3>();
     int _totalInputIdx = -1;
@@ -49,7 +49,7 @@ public class GPUTrail : GPUTrailBase
             {
                 _newPoints.Add(new Node()
                 {
-                    pos = GPUTrailSpline.CatmullRom((float)i / inputNum, prev, start, pos),
+                    pos = GpuTrailSpline.CatmullRom((float)i / inputNum, prev, start, pos),
                     time = timePrev + timeStep * i
                 });
             }

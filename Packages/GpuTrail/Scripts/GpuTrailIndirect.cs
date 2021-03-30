@@ -3,7 +3,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using UnityEngine.Assertions;
 
-public abstract class GPUTrailIndirect : GPUTrailBase
+public abstract class GpuTrailIndirect : GpuTrailBase
 {
     #region TypeDefine
     public struct Trail

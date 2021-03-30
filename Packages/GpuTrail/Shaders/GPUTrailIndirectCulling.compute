@@ -5,7 +5,7 @@
 
 #define NUM_THREAD_X 512
 
-#include "GPUTrailVariablesCS.compute"
+#include "GpuTrailVariablesCS.compute"
 
 
 ////////////////////////////////////////////////////////////////////////////////

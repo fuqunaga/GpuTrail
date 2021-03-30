@@ -1,4 +1,4 @@
-﻿public class GPUTrailIndirectCullingSample : GPUTrailIndirectCulling
+﻿public class GpuTrailIndirectCullingSample : GpuTrailIndirectCulling
 {
     public GpuTrailIndirectSampleParticle _particle;
 
