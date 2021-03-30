@@ -1,34 +1,37 @@
-﻿public class GpuTrailIndirectCullingSample : GpuTrailIndirectCulling
+﻿namespace GpuTrailSystem.Example
 {
-    public GpuTrailIndirectSampleParticle _particle;
-
-    protected override int trailNumMax
+    public class GpuTrailIndirectCullingSample : GpuTrailIndirectCulling
     {
-        get
+        public GpuTrailIndirectSampleParticle _particle;
+
+        protected override int trailNumMax
         {
-            return _particle._particleNum;
+            get
+            {
+                return _particle._particleNum;
+            }
         }
-    }
 
-    protected override void Awake()
-    {
-        base.Awake();
+        protected override void Awake()
+        {
+            base.Awake();
 
-        _particle.Init();
-    }
-
+            _particle.Init();
+        }
 
 
-    protected override bool UpdateInputBuffer()
-    {
-        _particle.UpdateInputBuffer(_inputBuffer);
-        return true;
-    }
 
-    protected override void ReleaseBuffer()
-    {
-        base.ReleaseBuffer();
+        protected override bool UpdateInputBuffer()
+        {
+            _particle.UpdateInputBuffer(_inputBuffer);
+            return true;
+        }
 
-        _particle.ReleaseBuffer();
+        protected override void ReleaseBuffer()
+        {
+            base.ReleaseBuffer();
+
+            _particle.ReleaseBuffer();
+        }
     }
 }

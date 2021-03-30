@@ -1,4 +1,4 @@
-﻿namespace GpuTrail.Example
+﻿namespace GpuTrailSystem.Example
 {
     public class GpuTrailIndirectExample : GpuTrailIndirect
     {
