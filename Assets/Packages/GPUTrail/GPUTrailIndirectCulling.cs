@@ -88,7 +88,7 @@ public abstract class GPUTrailIndirectCulling : GPUTrailIndirect
                     _material.SetBuffer("_TrailIndexBuffer", data._trailIsInViewsAppend);
                     _material.SetPass(0);
 
-                    Graphics.DrawProceduralIndirect(MeshTopology.Triangles, data._trailIsInViewArgs);
+                    Graphics.DrawProceduralIndirectNow(MeshTopology.Triangles, data._trailIsInViewArgs);
                 }
             }
         }

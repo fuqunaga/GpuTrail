@@ -170,7 +170,7 @@ public abstract class GPUTrailBase : MonoBehaviour
         _material.DisableKeyword("GPUTRAIL_TRAIL_INDEX_ON");
         _material.SetPass(0);
 
-        Graphics.DrawProcedural(MeshTopology.Triangles, _indexBuffer.count, trailNumMax);
+        Graphics.DrawProceduralNow(MeshTopology.Triangles, _indexBuffer.count, trailNumMax);
     }
 
     public void OnDestroy()
