@@ -8,15 +8,13 @@ namespace GpuTrailSystem
 {
     public class GpuTrailSingle : GpuTrail
     {
-        LinkedList<Vector3> _posLog = new LinkedList<Vector3>();
-        int _totalInputIdx = -1;
+        public int totalInputIdx { get; protected set; } = -1;
 
         public GraphicsBuffer _inputBuffer;
         public float _minNodeDistance = 0.1f;
         public int _inputNumMax = 5;
 
-
-        protected float _startTime;
+        LinkedList<Vector3> _posLog = new LinkedList<Vector3>();
 
         public override int trailNumMax => 1;
 
@@ -109,16 +107,13 @@ namespace GpuTrailSystem
             if (inputNum > 0)
             {
                 _inputBuffer.SetData(newPoints.ToArray());
-                if (_totalInputIdx < 0) _startTime = Time.time;
-                _totalInputIdx += inputNum;
+                totalInputIdx += inputNum;
             }
 
-            if (_totalInputIdx >= 0)
+            if (totalInputIdx >= 0)
             {
                 _cs.SetInt("_InputNum", inputNum);
-                _cs.SetInt("_TotalInputIdx", _totalInputIdx);
-                _cs.SetInt("_BufferSize", nodeNumPerTrail);
-                _cs.SetFloat("_StartTime", _startTime);
+                _cs.SetInt("_TotalInputIdx", totalInputIdx);
 
                 var kernel = _cs.FindKernel("AppendNode");
                 _cs.SetBuffer(kernel, "_InputBuffer", _inputBuffer);

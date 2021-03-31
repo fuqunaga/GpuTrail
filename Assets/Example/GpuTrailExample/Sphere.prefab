@@ -47,10 +47,9 @@ MonoBehaviour:
   _cs: {fileID: 7200000, guid: f88322fe9ecec1e41b2a237407abddad, type: 3}
   _life: 10
   _inputPerSec: 60
-  _inputNumMax: 5
   _minNodeDistance: 0.1
+  _inputNumMax: 5
   _debugDrawLogPoint: 0
-  _debugDrawVertexBuf: 0
 --- !u!114 &4269517395967901056
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -63,10 +62,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b564af979b749d34daa757bd2fc6bcd7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  createVertexBufferCS: {fileID: 7200000, guid: 1e64066b7b1a1f1479da46a17ff5482b,
+    type: 3}
   gpuTrail: {fileID: 2343243901435955503}
   _material: {fileID: 2100000, guid: 5f6e1cac686a9714e9048568cfe33abf, type: 2}
   _startWidth: 0.1
   _endWidth: 0.1
+  _debugDrawVertexBuf: 0
 --- !u!1 &139478
 GameObject:
   m_ObjectHideFlags: 0

@@ -10,7 +10,6 @@ namespace GpuTrailSystem
         {
             public static readonly int TrailNum = Shader.PropertyToID("_TrailNum");
             public static readonly int NodeNumPerTrail = Shader.PropertyToID("_NodeNumPerTrail");
-            public static readonly int Time = Shader.PropertyToID("_Time");
             public static readonly int Life = Shader.PropertyToID("_Life");
         }
 
@@ -56,7 +55,7 @@ namespace GpuTrailSystem
         {
             ReleaseBuffer();
 
-            nodeBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, nodeBufferSize, Marshal.SizeOf(typeof(Node)));
+            nodeBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, nodeBufferSize, Marshal.SizeOf<Node>());
         }
 
 
@@ -70,18 +69,17 @@ namespace GpuTrailSystem
         }
 
 
-        protected void SetCSParams()
+        public void SetCSParams(ComputeShader cs)
         {
-            _cs.SetInt(CSParam.TrailNum, trailNumMax);
-            _cs.SetInt(CSParam.NodeNumPerTrail, nodeNumPerTrail);
-
-            _cs.SetFloat (CSParam.Time, Time.time);
-            _cs.SetFloat (CSParam.Life, _life);
+            cs.SetInt(CSParam.TrailNum, trailNumMax);
+            cs.SetInt(CSParam.NodeNumPerTrail, nodeNumPerTrail);
+            
+            cs.SetFloat (CSParam.Life, _life);
         }
 
         protected virtual void LateUpdate()
         {
-            SetCSParams();
+            SetCSParams(_cs);
             UpdateNode();
         }
 

@@ -11,11 +11,13 @@ namespace GpuTrailSystem
     {
         public static class CSParam
         {
+            public static readonly int Time = Shader.PropertyToID("_Time");
             public static readonly int ToCameraDir = Shader.PropertyToID("_ToCameraDir");
             public static readonly int CameraPos = Shader.PropertyToID("_CameraPos");
         }
 
 
+        public ComputeShader createVertexBufferCS;
         public GpuTrail gpuTrail;
         public Material _material;
         public float _startWidth = 1f;
@@ -52,7 +54,7 @@ namespace GpuTrailSystem
 
         void LateUpdate()
         {
-            CreateWidth();
+            UpdateVertexBuffer();
         }
 
         void OnRenderObject()
@@ -120,10 +122,16 @@ namespace GpuTrailSystem
         protected virtual Vector3 cameraPos => Camera.main.transform.position;
 
 
-        void CreateWidth()
-        {
-            var cs = gpuTrail._cs;
+        float _startTime;
 
+        void UpdateVertexBuffer()
+        {
+            if (_startTime <= 0f) _startTime = Time.time;
+
+            var cs = createVertexBufferCS;
+            gpuTrail.SetCSParams(cs);
+
+            cs.SetFloat(CSParam.Time, Time.time);
 
             cs.SetVector(CSParam.ToCameraDir, isCameraOrthographic ? toOrthographicCameraDir : Vector3.zero);
             cs.SetVector(CSParam.CameraPos, cameraPos);
@@ -131,11 +139,23 @@ namespace GpuTrailSystem
             cs.SetFloat("_StartWidth", _startWidth);
             cs.SetFloat("_EndWidth", _endWidth);
 
-            var kernel = cs.FindKernel("CreateWidth");
+            cs.SetFloat("_StartTime", _startTime);
+
+            var single = gpuTrail as GpuTrailSingle;
+            cs.SetInt("_TotalInputIdx", single.totalInputIdx); ;
+
+            var kernel = cs.FindKernel("CreateVertexBuffer");
             cs.SetBuffer(kernel, "_NodeBuffer", gpuTrail.nodeBuffer);
             cs.SetBuffer(kernel, "_VertexBuffer", _vertexBuffer);
 
             ComputeShaderUtility.Dispatch(cs, kernel, gpuTrail.nodeBuffer.count);
+
+
+            var nodes = new Node[gpuTrail.nodeBuffer.count];
+            gpuTrail.nodeBuffer.GetData(nodes);
+
+            var vtxs = new Vertex[_vertexBuffer.count];
+            _vertexBuffer.GetData(vtxs);
         }
 
 

@@ -1,18 +1,14 @@
 ﻿#pragma kernel AppendNode
-#pragma kernel CreateWidth
 
 #define NUM_THREAD_X 16
 
 #include "GpuTrailVariablesCS.compute"
 
-int _InputNum;
 int _TotalInputIdx;
-uint _BufferSize;
-float _StartTime;
+int _InputNum;
 
 StructuredBuffer<Node> _InputBuffer;
 RWStructuredBuffer<Node> _NodeBuffer;
-RWStructuredBuffer<Vertex> _VertexBuffer;
 
 ////////////////////////////////////////////////////////////////////////////////
 // AppendNode
@@ -22,8 +18,8 @@ RWStructuredBuffer<Vertex> _VertexBuffer;
 int GetInputBufIdx(int idx)
 {
 	//今回のInputに含まれるIdx
-	int inputFirst = (_TotalInputIdx - _InputNum + 1) % _BufferSize;
-	int idxWithOffset = idx + ((idx < inputFirst) ? _BufferSize : 0);
+	int inputFirst = (_TotalInputIdx - _InputNum + 1) % _NodeNumPerTrail;
+	int idxWithOffset = idx + ((idx < inputFirst) ? _NodeNumPerTrail : 0);
 
 	return ((inputFirst <= idxWithOffset) && (idxWithOffset < (inputFirst + _InputNum)))
 	? idxWithOffset - inputFirst
@@ -34,92 +30,13 @@ int GetInputBufIdx(int idx)
 void AppendNode (uint3 id : SV_DispatchThreadID)
 {
 	int idx = id.x;
-	if ( idx < (int)_BufferSize )
+	if ( idx < (int)_NodeNumPerTrail )
 	{
-		int inputIdxLast = _TotalInputIdx % _BufferSize;
+		int inputIdxLast = _TotalInputIdx % _NodeNumPerTrail;
 		int inputBufIdx = GetInputBufIdx(idx);
 		if ( inputBufIdx >= 0 )
 		{
 			_NodeBuffer[idx] = _InputBuffer[inputBufIdx];
 		}
-	}
-}
-
-
-////////////////////////////////////////////////////////////////////////////////
-// CreateWidth
-////////////////////////////////////////////////////////////////////////////////
-
-Node GetNode(int idx)
-{
-	/*
-	int inputBufIdx = GetInputBufIdx(idx);
-	if ( inputBufIdx >= 0 )
-	{
-		return _InputBuffer[inputBufIdx]; 
-	}
-	*/
-	return _NodeBuffer[min(idx, _TotalInputIdx)]; // unused buffer is map to last input buffer
-}
-
-[numthreads(NUM_THREAD_X,1,1)]
-void CreateWidth (uint3 id : SV_DispatchThreadID)
-{
-	int idx = id.x;
-	if ( idx < (int)_BufferSize )
-	{
-		int inputIdxLast = _TotalInputIdx % _BufferSize;
-
-		Vertex v0 = GetDefaultVertex();
-		Vertex v1 = GetDefaultVertex();
-
-		Node node = GetNode(idx);
-		float3 pos = node.pos;
-
-		float3 dirPrev = float3(0,0,0);
-		float3 dirNext = float3(0,0,0);
-		if ( idx <= _TotalInputIdx )
-		{
-			int prevIdx = (idx-1 +_BufferSize) % _BufferSize;
-			bool prevEnable = (prevIdx != inputIdxLast);
-			if ( prevEnable )
-			{
-				Node nodePrev = GetNode(prevIdx);
-				dirPrev = normalize(pos - nodePrev.pos);
-			}
-
-			int nextIdx = (idx+1) % _BufferSize;
-			bool nextEnable = idx != inputIdxLast;
-			if ( nextEnable )
-			{
-				Node nodeNext = GetNode(nextIdx);
-				dirNext = normalize(nodeNext.pos - pos);
-			}
-		}
-
-
-		float life = min(_Life, _Time - _StartTime);
-		float rate = life <= 0 ? 1 : max(0, 1 - ((_Time - node.time) / life));
-
-		float3 dir = normalize(dirPrev + dirNext);
-
-		float3 toCameraDir = calcToCameraDir(pos);
-		float3 right = normalize(cross(dir, toCameraDir)) * lerp(_EndWidth, _StartWidth, rate) * 0.5f;
-
-		v0.pos = pos - right;
-		v0.uv = float2(rate, 0);
-		v0.color = node.color;
-
-		v1.pos = pos + right;
-		v1.uv = float2(rate, 1);
-		v1.color = node.color;
-
-		int drawIdx = inputIdxLast - (int)idx;
-		drawIdx = (drawIdx + _BufferSize) % _BufferSize;
-
-
-		uint vId = drawIdx * 2;
-		_VertexBuffer[vId] = v0;
-		_VertexBuffer[vId+1] = v1;
 	}
 }
