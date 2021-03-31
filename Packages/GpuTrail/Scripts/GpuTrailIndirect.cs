@@ -1,11 +1,10 @@
-﻿using UnityEngine;
-using System.Linq;
+﻿using System.Linq;
 using System.Runtime.InteropServices;
-using UnityEngine.Assertions;
+using UnityEngine;
 
 namespace GpuTrailSystem
 {
-    public abstract class GpuTrailIndirect : GpuTrailBase
+    public abstract class GpuTrailIndirect : GpuTrail
     {
         #region TypeDefine
         public struct Trail
@@ -54,22 +53,15 @@ namespace GpuTrailSystem
                 var kernel = _cs.FindKernel("AddNode");
                 _cs.SetBuffer(kernel, "_InputBuffer", _inputBuffer);
                 _cs.SetBuffer(kernel, "_TrailBufferW", _trailBuffer);
-                _cs.SetBuffer(kernel, "_NodeBufferW", _nodeBuffer);
-                Dispatch(_cs, kernel, _nodeBuffer.count);
+                _cs.SetBuffer(kernel, "_NodeBufferW", nodeBuffer);
+                ComputeShaderUtility.Dispatch(_cs, kernel, nodeBuffer.count);
 
                 // CreateWidth
                 kernel = _cs.FindKernel("CreateWidth");
                 _cs.SetBuffer(kernel, "_TrailBuffer", _trailBuffer);
-                _cs.SetBuffer(kernel, "_NodeBuffer", _nodeBuffer);
-                _cs.SetBuffer(kernel, "_VertexBuffer", _vertexBuffer);
-                Dispatch(_cs, kernel, _nodeBuffer.count);
-            }
-
-            static void Dispatch(ComputeShader cs, int kernel, int numThread)
-            {
-                cs.GetKernelThreadGroupSizes(kernel, out var x, out var _, out var _);
-
-                cs.Dispatch(kernel, Mathf.CeilToInt((float)numThread / x), 1, 1);
+                _cs.SetBuffer(kernel, "_NodeBuffer", nodeBuffer);
+                //_cs.SetBuffer(kernel, "_VertexBuffer", _vertexBuffer);
+                ComputeShaderUtility.Dispatch(_cs, kernel, nodeBuffer.count);
             }
         }
 

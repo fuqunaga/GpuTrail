@@ -1,0 +1,13 @@
+fileFormatVersion: 2
+guid: b564af979b749d34daa757bd2fc6bcd7
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - gpuTrail: {instanceID: 0}
+  - _material: {fileID: 2100000, guid: 5f6e1cac686a9714e9048568cfe33abf, type: 2}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

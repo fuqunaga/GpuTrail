@@ -11,7 +11,9 @@ namespace GpuTrailSystem
     /// </summary>
     public abstract class GpuTrailIndirectCulling : GpuTrailIndirect
     {
-        #region TypeDefine
+
+#if false
+#region TypeDefine
         public class Data
         {
             public GraphicsBuffer _trailIsInViews;
@@ -72,7 +74,7 @@ namespace GpuTrailSystem
                 }
             }
         }
-        #endregion
+#endregion
 
         public ComputeShader _cullingCS;
         public bool _cullingEnable = true;
@@ -153,5 +155,6 @@ namespace GpuTrailSystem
             _cameraDatas.Values.Where(d => d != null).ToList().ForEach(d => d.Release());
             _cameraDatas.Clear();
         }
+#endif
     }
 }

@@ -1,158 +1,120 @@
-﻿using System.Collections.Generic;
+﻿using UnityEngine;
 using System.Linq;
 using System.Runtime.InteropServices;
-using UnityEngine;
-using UnityEngine.Assertions;
+using UnityEngine.Rendering;
+
 
 namespace GpuTrailSystem
 {
-    public class GpuTrail : GpuTrailBase
+    public abstract class GpuTrail : MonoBehaviour
     {
-        LinkedList<Vector3> _posLog = new LinkedList<Vector3>();
-        int _totalInputIdx = -1;
-
-        GraphicsBuffer _inputBuffer;
-
-        protected float _startTime;
-
-        protected override int trailNumMax { get { return 1; } }
-
-        protected override void Awake()
+        public static class ShaderParam
         {
-            base.Awake();
-
-            _inputBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, _inputNumMax, Marshal.SizeOf(typeof(Node)));
+            public static readonly int TrailNum = Shader.PropertyToID("_TrailNum");
+            public static readonly int NodeNumPerTrail = Shader.PropertyToID("_NodeNumPerTrail");
+            public static readonly int InputNodeNum = Shader.PropertyToID("_InputNodeNum");
+            public static readonly int MinNodeDistance = Shader.PropertyToID("_MinNodeDistance");
+            public static readonly int Time = Shader.PropertyToID("_Time");
+            public static readonly int Life = Shader.PropertyToID("_Life");
+            public static readonly int ToCameraDir = Shader.PropertyToID("_ToCameraDir");
+            public static readonly int CameraPos = Shader.PropertyToID("_CameraPos");
         }
 
 
-        void Start()
+        public ComputeShader _cs;
+        public float _life = 10f;
+        public float _inputPerSec = 60f;
+        public int _inputNumMax = 5;
+        public float _minNodeDistance = 0.1f;
+
+        public int nodeNumPerTrail { get; protected set; }
+
+        public GraphicsBuffer nodeBuffer { get; protected set; }
+        //protected GraphicsBuffer _vertexBuffer;
+
+        protected Camera currentCamera;
+
+
+        public abstract int trailNumMax { get; }
+        public int nodeBufferSize => trailNumMax * nodeNumPerTrail;
+        public int vertexBufferSize => nodeBufferSize * 2;
+
+        public int vertexNumPerTrail => nodeNumPerTrail * 2;
+        public int indexNumPerTrail => (nodeNumPerTrail - 1) * 6;
+
+
+        #region Unity
+
+        protected virtual void Awake()
         {
-            _posLog.AddLast(transform.position);
-        }
-
-        protected override void ReleaseBuffer()
-        {
-            base.ReleaseBuffer();
-            if (_inputBuffer != null) _inputBuffer.Release();
-        }
-
-
-        void _LerpPos(int inputNum, Vector3 pos)
-        {
-            var timeStep = Time.deltaTime / inputNum;
-            var timePrev = Time.time - Time.deltaTime;
-
-            var posPrev = _posLog.Last();
-            var posStep = (pos - posPrev) / inputNum;
-
-            for (var i = 1; i < inputNum; ++i)
+            nodeNumPerTrail = Mathf.CeilToInt(_life * _inputPerSec);
+            if (_inputPerSec < Application.targetFrameRate)
             {
-                _newPoints.Add(new Node()
-                {
-                    pos = posPrev + posStep * i,
-                    time = timePrev + timeStep * i
-                });
+                Debug.LogWarning($"inputPerSec({_inputPerSec}) < targetFps({Application.targetFrameRate}): Trai adds a node every frame, so running at TargetFrameRate will overflow the buffer.");
             }
 
+            InitBuffer();
         }
 
-        List<Node> _newPoints = new List<Node>();
-        protected override void UpdateVertex()
+
+        public void OnDestroy()
         {
-            var pos = transform.position;
-            var posPrev = _posLog.Last();
-
-            if ((Vector3.Distance(posPrev, pos) > _minNodeDistance))
-            {
-                var inputNum = Mathf.Clamp(Mathf.FloorToInt(Time.deltaTime * _inputPerSec), 1, _inputNumMax);
-                //inputNum = 1;
-
-                if (inputNum > 1)
-                {
-                    _LerpPos(inputNum, pos);
-                }
-
-                _newPoints.Add(new Node()
-                {
-                    pos = pos,
-                    time = Time.time
-                });
-
-                _posLog.AddLast(pos);
-
-                // _posLogには過去２つの位置を保存しとく
-                for (var i = 0; i < _posLog.Count - 2; ++i)
-                {
-                    _posLog.RemoveFirst();
-                }
-            }
-
-            _UpdateVertex(_newPoints);
-
-            _newPoints.Clear();
+            ReleaseBuffer();
         }
 
-        const int NUM_THREAD_X = 16;
-        void _UpdateVertex(List<Node> newPoints)
+        #endregion
+
+
+
+        protected virtual void InitBuffer()
         {
-            Assert.IsTrue(newPoints.Count <= _inputNumMax);
+            ReleaseBuffer();
 
-            var inputNum = newPoints.Count;
-            if (inputNum > 0)
+            nodeBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, nodeBufferSize, Marshal.SizeOf(typeof(Node)));
+            nodeBuffer.SetData(Enumerable.Repeat(default(Node), nodeBuffer.count).ToArray());
+        }
+
+
+
+        protected virtual void ReleaseBuffer()
+        {
+            if (nodeBuffer != null)
             {
-                _inputBuffer.SetData(newPoints.ToArray());
-                if (_totalInputIdx < 0) _startTime = Time.time;
-                _totalInputIdx += inputNum;
-            }
-
-            if (_totalInputIdx >= 0)
-            {
-                SetCommonParameterForCS();
-
-                _cs.SetInt("_InputNum", inputNum);
-                _cs.SetInt("_TotalInputIdx", _totalInputIdx);
-                _cs.SetInt("_BufferSize", _nodeNumPerTrail);
-                _cs.SetFloat("_StartTime", _startTime);
-
-                var kernel = _cs.FindKernel("CreateWidth");
-                _cs.SetBuffer(kernel, "_InputBuffer", _inputBuffer);
-                _cs.SetBuffer(kernel, "_NodeBuffer", _nodeBuffer);
-                _cs.SetBuffer(kernel, "_VertexBuffer", _vertexBuffer);
-
-                _cs.Dispatch(kernel, Mathf.CeilToInt((float)_nodeBuffer.count / NUM_THREAD_X), 1, 1);
+                nodeBuffer.Release();
             }
         }
 
 
-        public bool _debugDrawLogPoint;
-        public bool _debugDrawVertexBuf;
+        protected virtual bool isCameraOrthographic => Camera.main.orthographic;
+        protected virtual Vector3 toOrthographicCameraDir => -Camera.main.transform.forward;
+        protected virtual Vector3 cameraPos => Camera.main.transform.position;
 
-        public void OnDrawGizmosSelected()
+        protected void SetCommonParameterForCS()
         {
-            if (_debugDrawLogPoint)
-            {
-                Gizmos.color = Color.magenta;
-                _posLog.ToList().ForEach(p =>
-                {
-                    Gizmos.DrawWireSphere(p, _minNodeDistance);
-                });
-            }
-
-            if (_debugDrawVertexBuf)
-            {
-                Gizmos.color = Color.yellow;
-                var data = new Vertex[_vertexBuffer.count];
-                _vertexBuffer.GetData(data);
-
-                var num = _vertexBuffer.count / 2;
-                for (var i = 0; i < num; ++i)
-                {
-                    var v0 = data[2 * i];
-                    var v1 = data[2 * i + 1];
-
-                    Gizmos.DrawLine(v0.pos, v1.pos);
-                }
-            }
+            _SetCommonParameterForCS(_cs);
         }
+
+        protected void _SetCommonParameterForCS(ComputeShader cs)
+        {
+            cs.SetInt(ShaderParam.TrailNum, trailNumMax);
+            cs.SetInt(ShaderParam.NodeNumPerTrail, nodeNumPerTrail);
+
+            cs.SetInt(ShaderParam.InputNodeNum, Mathf.Min(_inputNumMax, Mathf.FloorToInt(_inputNumCurrent)));
+            cs.SetFloat(ShaderParam.MinNodeDistance, _minNodeDistance);
+            cs.SetFloat (ShaderParam.Time, Time.time);
+            cs.SetFloat (ShaderParam.Life, _life);
+
+            cs.SetVector(ShaderParam.ToCameraDir, isCameraOrthographic ? toOrthographicCameraDir : Vector3.zero);
+            cs.SetVector(ShaderParam.CameraPos, cameraPos);
+        }
+
+        float _inputNumCurrent;
+        protected virtual void LateUpdate()
+        {
+            _inputNumCurrent = Time.deltaTime * _inputPerSec + (_inputNumCurrent - Mathf.Floor(_inputNumCurrent)); // continue under dicimal
+            UpdateVertex();
+        }
+
+        protected abstract void UpdateVertex();
     }
 }

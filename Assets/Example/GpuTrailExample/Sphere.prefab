@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 439476}
   - component: {fileID: 2343243901435955503}
+  - component: {fileID: 4269517395967901056}
   m_Layer: 0
   m_Name: GPUTrail
   m_TagString: Untagged
@@ -44,16 +45,28 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _cs: {fileID: 7200000, guid: f88322fe9ecec1e41b2a237407abddad, type: 3}
-  _material: {fileID: 2100000, guid: 5f6e1cac686a9714e9048568cfe33abf, type: 2}
   _life: 10
   _inputPerSec: 60
   _inputNumMax: 5
-  _lerpType: 1
   _minNodeDistance: 0.1
-  _startWidth: 0.1
-  _endWidth: 0.1
   _debugDrawLogPoint: 0
   _debugDrawVertexBuf: 0
+--- !u!114 &4269517395967901056
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 139476}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b564af979b749d34daa757bd2fc6bcd7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  gpuTrail: {fileID: 2343243901435955503}
+  _material: {fileID: 2100000, guid: 5f6e1cac686a9714e9048568cfe33abf, type: 2}
+  _startWidth: 0.1
+  _endWidth: 0.1
 --- !u!1 &139478
 GameObject:
   m_ObjectHideFlags: 0

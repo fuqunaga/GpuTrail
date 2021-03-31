@@ -4,7 +4,7 @@
     {
         public GpuTrailIndirectSampleParticle _particle;
 
-        protected override int trailNumMax
+        public override int trailNumMax
         {
             get
             {
