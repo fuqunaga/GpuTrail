@@ -42,11 +42,9 @@ namespace GpuTrailSystem
             if (_trailBuffer != null) _trailBuffer.Release();
         }
 
-        protected override void UpdateVertex()
+        protected override void UpdateNode()
         {
             // AddNode
-            SetCommonParameterForCS();
-
             var success = UpdateInputBuffer();
             if (success)
             {

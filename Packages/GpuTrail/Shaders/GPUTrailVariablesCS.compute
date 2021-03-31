@@ -4,9 +4,6 @@
 #include "GpuTrailInput.cginc"
 #include "GpuTrailVertex.cginc"
 
-// #define LERP_TYPE_NONE 0
-// #define LERP_TYPE_SPLINE 1
-
 struct Trail
 {
 	float startTime;
@@ -22,9 +19,6 @@ struct Node
 
 uint _TrailNum;
 uint _NodeNumPerTrail;
-uint _InputNodeNum;
-// uint _LerpType;
-float _MinNodeDistance;
 float _Time;
 float _Life;
 float3 _ToCameraDir; // for orthographics camera

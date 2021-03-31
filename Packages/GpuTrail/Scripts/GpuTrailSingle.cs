@@ -12,6 +12,9 @@ namespace GpuTrailSystem
         int _totalInputIdx = -1;
 
         public GraphicsBuffer _inputBuffer;
+        public float _minNodeDistance = 0.1f;
+        public int _inputNumMax = 5;
+
 
         protected float _startTime;
 
@@ -63,7 +66,7 @@ namespace GpuTrailSystem
         }
 
         List<Node> _newPoints = new List<Node>();
-        protected override void UpdateVertex()
+        protected override void UpdateNode()
         {
             var pos = transform.position;
             var posPrev = _posLog.Last();
@@ -93,13 +96,12 @@ namespace GpuTrailSystem
                 }
             }
 
-            _UpdateVertex(_newPoints);
+            _UpdateNode(_newPoints);
 
             _newPoints.Clear();
         }
 
-        const int NUM_THREAD_X = 16;
-        void _UpdateVertex(List<Node> newPoints)
+        void _UpdateNode(List<Node> newPoints)
         {
             Assert.IsTrue(newPoints.Count <= _inputNumMax);
 
@@ -113,55 +115,36 @@ namespace GpuTrailSystem
 
             if (_totalInputIdx >= 0)
             {
-                SetCommonParameterForCS();
-
                 _cs.SetInt("_InputNum", inputNum);
                 _cs.SetInt("_TotalInputIdx", _totalInputIdx);
                 _cs.SetInt("_BufferSize", nodeNumPerTrail);
                 _cs.SetFloat("_StartTime", _startTime);
 
-                //var kernel = _cs.FindKernel("CreateWidth");
                 var kernel = _cs.FindKernel("AppendNode");
                 _cs.SetBuffer(kernel, "_InputBuffer", _inputBuffer);
                 _cs.SetBuffer(kernel, "_NodeBuffer", nodeBuffer);
-                //_cs.SetBuffer(kernel, "_VertexBuffer", _vertexBuffer);
 
                 ComputeShaderUtility.Dispatch(_cs, kernel, nodeBuffer.count);
             }
         }
 
 
+        #region Debug
+
         public bool _debugDrawLogPoint;
-        //public bool _debugDrawVertexBuf;
 
         public void OnDrawGizmosSelected()
         {
             if (_debugDrawLogPoint)
             {
                 Gizmos.color = Color.magenta;
-                _posLog.ToList().ForEach(p =>
+                foreach( var p in _posLog)
                 {
                     Gizmos.DrawWireSphere(p, _minNodeDistance);
-                });
-            }
-
-            /*
-            if (_debugDrawVertexBuf)
-            {
-                Gizmos.color = Color.yellow;
-                var data = new Vertex[_vertexBuffer.count];
-                _vertexBuffer.GetData(data);
-
-                var num = _vertexBuffer.count / 2;
-                for (var i = 0; i < num; ++i)
-                {
-                    var v0 = data[2 * i];
-                    var v1 = data[2 * i + 1];
-
-                    Gizmos.DrawLine(v0.pos, v1.pos);
                 }
             }
-            */
         }
+
+        #endregion
     }
 }

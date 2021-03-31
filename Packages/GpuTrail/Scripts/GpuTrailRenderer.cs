@@ -9,6 +9,13 @@ namespace GpuTrailSystem
     [RequireComponent(typeof(GpuTrail))]
     public class GpuTrailRenderer : MonoBehaviour
     {
+        public static class CSParam
+        {
+            public static readonly int ToCameraDir = Shader.PropertyToID("_ToCameraDir");
+            public static readonly int CameraPos = Shader.PropertyToID("_CameraPos");
+        }
+
+
         public GpuTrail gpuTrail;
         public Material _material;
         public float _startWidth = 1f;
@@ -108,27 +115,27 @@ namespace GpuTrailSystem
             }
         }
 
+        protected virtual bool isCameraOrthographic => Camera.main.orthographic;
+        protected virtual Vector3 toOrthographicCameraDir => -Camera.main.transform.forward;
+        protected virtual Vector3 cameraPos => Camera.main.transform.position;
+
+
         void CreateWidth()
         {
             var cs = gpuTrail._cs;
 
+
+            cs.SetVector(CSParam.ToCameraDir, isCameraOrthographic ? toOrthographicCameraDir : Vector3.zero);
+            cs.SetVector(CSParam.CameraPos, cameraPos);
+
             cs.SetFloat("_StartWidth", _startWidth);
             cs.SetFloat("_EndWidth", _endWidth);
 
-            var single = gpuTrail as GpuTrailSingle;
-
             var kernel = cs.FindKernel("CreateWidth");
-            cs.SetBuffer(kernel, "_InputBuffer", single._inputBuffer);
             cs.SetBuffer(kernel, "_NodeBuffer", gpuTrail.nodeBuffer);
             cs.SetBuffer(kernel, "_VertexBuffer", _vertexBuffer);
 
             ComputeShaderUtility.Dispatch(cs, kernel, gpuTrail.nodeBuffer.count);
-
-            var nodeData = new Node[gpuTrail.nodeBuffer.count];
-            gpuTrail.nodeBuffer.GetData(nodeData);
-
-            var vtxs = new Vertex[_vertexBuffer.count];
-            _vertexBuffer.GetData(vtxs);
         }
 
 

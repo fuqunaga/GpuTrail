@@ -52,11 +52,13 @@ void AppendNode (uint3 id : SV_DispatchThreadID)
 
 Node GetNode(int idx)
 {
+	/*
 	int inputBufIdx = GetInputBufIdx(idx);
 	if ( inputBufIdx >= 0 )
 	{
 		return _InputBuffer[inputBufIdx]; 
 	}
+	*/
 	return _NodeBuffer[min(idx, _TotalInputIdx)]; // unused buffer is map to last input buffer
 }
 
