@@ -22,18 +22,18 @@ namespace GpuTrailSystem
         }
         #endregion
 
-        protected ComputeBuffer _inputBuffer;
-        ComputeBuffer _trailBuffer;
+        protected GraphicsBuffer _inputBuffer;
+        GraphicsBuffer _trailBuffer;
 
 
         override protected void Awake()
         {
             base.Awake();
 
-            _trailBuffer = new ComputeBuffer(trailNumMax, Marshal.SizeOf(typeof(Trail)));
+            _trailBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, trailNumMax, Marshal.SizeOf(typeof(Trail)));
             _trailBuffer.SetData(Enumerable.Repeat(default(Trail), trailNumMax).ToArray());
 
-            _inputBuffer = new ComputeBuffer(trailNumMax, Marshal.SizeOf(typeof(InputData)));
+            _inputBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, trailNumMax, Marshal.SizeOf(typeof(InputData)));
         }
 
         override protected void ReleaseBuffer()

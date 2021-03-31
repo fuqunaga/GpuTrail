@@ -37,9 +37,9 @@ namespace GpuTrailSystem
 
         protected int _nodeNumPerTrail;
 
-        protected ComputeBuffer _nodeBuffer;
-        protected ComputeBuffer _vertexBuffer;
-        protected ComputeBuffer _indexBuffer;
+        protected GraphicsBuffer _nodeBuffer;
+        protected GraphicsBuffer _vertexBuffer;
+        protected GraphicsBuffer _indexBuffer;
 
         protected Camera currentCamera;
 
@@ -78,10 +78,10 @@ namespace GpuTrailSystem
 
         protected virtual void InitBuffer()
         {
-            _nodeBuffer = new ComputeBuffer(nodeBufferSize, Marshal.SizeOf(typeof(Node)));
+            _nodeBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, nodeBufferSize, Marshal.SizeOf(typeof(Node)));
             _nodeBuffer.SetData(Enumerable.Repeat(default(Node), _nodeBuffer.count).ToArray());
 
-            _vertexBuffer = new ComputeBuffer(vertexBufferSize, Marshal.SizeOf(typeof(Vertex))); // 1 node to 2 vtx(left,right)
+            _vertexBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, vertexBufferSize, Marshal.SizeOf(typeof(Vertex))); // 1 node to 2 vtx(left,right)
             _vertexBuffer.SetData(Enumerable.Repeat(default(Vertex), _vertexBuffer.count).ToArray());
 
             // 各Nodeの最後と次のNodeの最初はポリゴンを繋がないので-1
@@ -98,7 +98,7 @@ namespace GpuTrailSystem
                 indexData[iidx++] = 3 + offset;
             }
 
-            _indexBuffer = new ComputeBuffer(indexData.Length, Marshal.SizeOf(typeof(uint))); // 1 node to 2 triangles(6vertexs)
+            _indexBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, indexData.Length, Marshal.SizeOf(typeof(uint))); // 1 node to 2 triangles(6vertexs)
             _indexBuffer.SetData(indexData);
         }
 

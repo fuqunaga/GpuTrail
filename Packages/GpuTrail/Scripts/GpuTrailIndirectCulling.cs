@@ -14,16 +14,16 @@ namespace GpuTrailSystem
         #region TypeDefine
         public class Data
         {
-            public ComputeBuffer _trailIsInViews;
-            public ComputeBuffer _trailIsInViewsAppend;
-            public ComputeBuffer _trailIsInViewArgs;
+            public GraphicsBuffer _trailIsInViews;
+            public GraphicsBuffer _trailIsInViewsAppend;
+            public GraphicsBuffer _trailIsInViewArgs;
 
 
             public Data(int trailNumMax, int indexNumPerTrail, int vertexBuferSize)
             {
-                _trailIsInViews = new ComputeBuffer(trailNumMax, 4); // bool buffer but stride must be amultiple of 4
-                _trailIsInViewsAppend = new ComputeBuffer(trailNumMax, sizeof(uint), ComputeBufferType.Append);
-                _trailIsInViewArgs = new ComputeBuffer(4, sizeof(int), ComputeBufferType.IndirectArguments);
+                _trailIsInViews = new GraphicsBuffer(GraphicsBuffer.Target.Structured, trailNumMax, 4); // bool buffer but stride must be amultiple of 4
+                _trailIsInViewsAppend = new GraphicsBuffer(GraphicsBuffer.Target.Append, trailNumMax, sizeof(uint));
+                _trailIsInViewArgs = new GraphicsBuffer(GraphicsBuffer.Target.IndirectArguments, 4, sizeof(int));
                 _trailIsInViewArgs.SetData(new[] { indexNumPerTrail, 1, 0, 0 });
             }
 
@@ -35,7 +35,7 @@ namespace GpuTrailSystem
                 .ForEach(b => b.Release());
             }
 
-            public void Update(ComputeShader cs, Camera camera, ComputeBuffer nodeBuffer, ComputeBuffer vertexBufferOrig)
+            public void Update(ComputeShader cs, Camera camera, GraphicsBuffer nodeBuffer, GraphicsBuffer vertexBufferOrig)
             {
                 var kernel = cs.FindKernel("ClearIsInView");
                 cs.SetBuffer(kernel, "_IsInViewW", _trailIsInViews);
@@ -62,7 +62,7 @@ namespace GpuTrailSystem
                 cs.SetBuffer(kernel, "_IsInViewAppend", _trailIsInViewsAppend);
                 Dispatch(cs, kernel, _trailIsInViews.count);
 
-                ComputeBuffer.CopyCount(_trailIsInViewsAppend, _trailIsInViewArgs, 4); // int[4]{ indexNumPerNode, trailNum, 0, 0}
+                GraphicsBuffer.CopyCount(_trailIsInViewsAppend, _trailIsInViewArgs, 4); // int[4]{ indexNumPerNode, trailNum, 0, 0}
 
                 static void Dispatch(ComputeShader cs, int kernel, int numThread)
                 {

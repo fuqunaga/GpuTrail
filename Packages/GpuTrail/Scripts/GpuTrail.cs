@@ -11,7 +11,7 @@ namespace GpuTrailSystem
         LinkedList<Vector3> _posLog = new LinkedList<Vector3>();
         int _totalInputIdx = -1;
 
-        ComputeBuffer _inputBuffer;
+        GraphicsBuffer _inputBuffer;
 
         protected float _startTime;
 
@@ -21,7 +21,7 @@ namespace GpuTrailSystem
         {
             base.Awake();
 
-            _inputBuffer = new ComputeBuffer(_inputNumMax, Marshal.SizeOf(typeof(Node)));
+            _inputBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, _inputNumMax, Marshal.SizeOf(typeof(Node)));
         }
 
 

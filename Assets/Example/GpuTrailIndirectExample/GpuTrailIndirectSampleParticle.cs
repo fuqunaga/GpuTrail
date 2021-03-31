@@ -14,7 +14,7 @@ namespace GpuTrailSystem.Example
             public Vector3 pos;
         }
 
-        ComputeBuffer _particleBuffer;
+        GraphicsBuffer _particleBuffer;
 
 
         public ComputeShader _particleCS;
@@ -27,7 +27,7 @@ namespace GpuTrailSystem.Example
 
         public void Init()
         {
-            _particleBuffer = new ComputeBuffer(_particleNum, Marshal.SizeOf(typeof(Particle)));
+            _particleBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, _particleNum, Marshal.SizeOf(typeof(Particle)));
 
             var data = new Particle[_particleBuffer.count];
             for (var i = 0; i < data.Length; ++i)
@@ -43,7 +43,7 @@ namespace GpuTrailSystem.Example
         }
 
         const int NUM_THREAD_X = 8;
-        public void UpdateInputBuffer(ComputeBuffer inputBuffer)
+        public void UpdateInputBuffer(GraphicsBuffer inputBuffer)
         {
             _particleCS.SetFloat("_Time", Time.time);
             _particleCS.SetFloat("_ForceRate", _forceRate);
