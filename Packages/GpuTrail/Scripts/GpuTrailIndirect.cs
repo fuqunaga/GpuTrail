@@ -28,8 +28,6 @@ namespace GpuTrailSystem
 
         override protected void Awake()
         {
-            Assert.IsFalse(_lerpType == LerpType.Spline, "not implemented LerpType.Spline at GPUTrailIndirect.");
-
             base.Awake();
 
             _trailBuffer = new ComputeBuffer(trailNumMax, Marshal.SizeOf(typeof(Trail)));

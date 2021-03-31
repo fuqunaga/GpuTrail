@@ -8,12 +8,6 @@ namespace GpuTrailSystem
     public abstract class GpuTrailBase : MonoBehaviour
     {
         #region TypeDefine
-        public enum LerpType
-        {
-            None,
-            Spline
-        }
-
 
         public struct Node
         {
@@ -37,7 +31,6 @@ namespace GpuTrailSystem
         public float _life = 10f;
         public float _inputPerSec = 60f;
         public int _inputNumMax = 5;
-        public LerpType _lerpType = LerpType.Spline;
         public float _minNodeDistance = 0.1f;
         public float _startWidth = 1f;
         public float _endWidth = 1f;

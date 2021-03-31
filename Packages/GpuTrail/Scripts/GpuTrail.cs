@@ -42,35 +42,18 @@ namespace GpuTrailSystem
             var timeStep = Time.deltaTime / inputNum;
             var timePrev = Time.time - Time.deltaTime;
 
-            if (LerpType.Spline == _lerpType && (_posLog.Count >= 2))
-            {
-                var prev = _posLog.Last.Previous.Value;
-                var start = _posLog.Last.Value;
+            var posPrev = _posLog.Last();
+            var posStep = (pos - posPrev) / inputNum;
 
-                for (var i = 1; i < inputNum; ++i)
-                {
-                    _newPoints.Add(new Node()
-                    {
-                        pos = GpuTrailSpline.CatmullRom((float)i / inputNum, prev, start, pos),
-                        time = timePrev + timeStep * i
-                    });
-                }
-            }
-            // Linear
-            else
+            for (var i = 1; i < inputNum; ++i)
             {
-                var posPrev = _posLog.Last();
-                var posStep = (pos - posPrev) / inputNum;
-
-                for (var i = 1; i < inputNum; ++i)
+                _newPoints.Add(new Node()
                 {
-                    _newPoints.Add(new Node()
-                    {
-                        pos = posPrev + posStep * i,
-                        time = timePrev + timeStep * i
-                    });
-                }
+                    pos = posPrev + posStep * i,
+                    time = timePrev + timeStep * i
+                });
             }
+
         }
 
         List<Node> _newPoints = new List<Node>();
