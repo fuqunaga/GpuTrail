@@ -27,7 +27,7 @@ namespace GpuTrailSystem.Example
 
         public void Init()
         {
-            _particleBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, _particleNum, Marshal.SizeOf(typeof(Particle)));
+            _particleBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, _particleNum, Marshal.SizeOf<Particle>());
 
             var data = new Particle[_particleBuffer.count];
             for (var i = 0; i < data.Length; ++i)
@@ -56,7 +56,7 @@ namespace GpuTrailSystem.Example
             _particleCS.SetBuffer(kernel, "_ParticleBuffer", _particleBuffer);
             _particleCS.SetBuffer(kernel, "_InputBuffer", inputBuffer);
 
-            _particleCS.Dispatch(kernel, Mathf.CeilToInt((float)_particleBuffer.count / NUM_THREAD_X), 1, 1);
+            ComputeShaderUtility.Dispatch(_particleCS, kernel, _particleBuffer.count);
         }
 
         public void ReleaseBuffer()

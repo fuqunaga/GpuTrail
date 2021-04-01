@@ -12,7 +12,6 @@ namespace GpuTrailSystem
 
         public ComputeShader _cs;
         public GraphicsBuffer _inputBuffer;
-        //public int _inputNumMax = 5;
 
         public int totalInputIdx { get; protected set; } = -1;
         LinkedList<Vector3> _posLog = new LinkedList<Vector3>();
@@ -29,7 +28,7 @@ namespace GpuTrailSystem
             _inputBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, gpuTrail.trailNum, Marshal.SizeOf(typeof(InputData)));
 
             _posLog.AddLast(transform.position);
-            
+
         }
 
         void OnDestroy()
@@ -82,7 +81,7 @@ namespace GpuTrailSystem
                 var inputdata = new InputData()
                 {
                     position = pos,
-                    color  = Color.white
+                    color = Color.white
                     //time = Time.time
                 };
 
@@ -100,38 +99,21 @@ namespace GpuTrailSystem
 
         void _UpdateNode(InputData inputData)
         {
-            //Assert.IsTrue(newPoints.Count <= _inputNumMax);
-
-            /*
-            var inputNum = newPoints.Count;
-            if (inputNum > 0)
-            {
-                _inputBuffer.SetData(newPoints.ToArray());
-                totalInputIdx += inputNum;
-            }
-            */
-
             _inputBuffer.SetData(new[] { inputData });
 
-            //if (totalInputIdx >= 0)
-            {
-                //_cs.SetInt("_InputNum", inputNum);
-                //_cs.SetInt("_TotalInputIdx", totalInputIdx);
+            var kernel = _cs.FindKernel("AppendNode");
+            _cs.SetBuffer(kernel, "_InputBuffer", _inputBuffer);
+            gpuTrail.SetCSParams(_cs, kernel);
 
-                var kernel = _cs.FindKernel("AppendNode");
-                _cs.SetBuffer(kernel, "_InputBuffer", _inputBuffer);
-                gpuTrail.SetCSParams(_cs, kernel);
+            ComputeShaderUtility.Dispatch(_cs, kernel, gpuTrail.trailBuffer.count);
 
-                ComputeShaderUtility.Dispatch(_cs, kernel, gpuTrail.trailBuffer.count);
+            /*
+            var trail = new Trail[gpuTrail.trailBuffer.count];
+            gpuTrail.trailBuffer.GetData(trail);
 
-                /*
-                var trail = new Trail[gpuTrail.trailBuffer.count];
-                gpuTrail.trailBuffer.GetData(trail);
-
-                var node = new Node[gpuTrail.nodeBuffer.count];
-                gpuTrail.nodeBuffer.GetData(node);
-                */
-            }
+            var node = new Node[gpuTrail.nodeBuffer.count];
+            gpuTrail.nodeBuffer.GetData(node);
+            */
         }
 
 
@@ -144,7 +126,7 @@ namespace GpuTrailSystem
             if (_debugDrawLogPoint)
             {
                 Gizmos.color = Color.magenta;
-                foreach( var p in _posLog)
+                foreach (var p in _posLog)
                 {
                     Gizmos.DrawWireSphere(p, gpuTrail.minNodeDistance);
                 }

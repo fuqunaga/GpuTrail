@@ -1,28 +1,35 @@
-﻿namespace GpuTrailSystem.Example
+﻿using UnityEngine;
+
+namespace GpuTrailSystem.Example
 {
-    public class GpuTrailIndirectExample : GpuTrailIndirect
+    public class GpuTrailIndirectExample : MonoBehaviour, IGpuTrailHolder
     {
-        public GpuTrailIndirectSampleParticle _particle;
+        public GpuTrailIndirectSampleParticle particle;
 
-        protected override void Awake()
+        [SerializeField]
+        protected GpuTrail gpuTrail;
+
+        public GpuTrail GpuTrail => gpuTrail;
+
+        void Awake()
         {
-            base.Awake();
-            _particle.Init();
-            gpuTrail.trailNum = _particle._particleNum;
+            particle.Init();
+            gpuTrail.trailNum = particle._particleNum;
+            gpuTrail.Init();
         }
 
 
 
-        protected override bool UpdateInputBuffer()
+        void Update()
         {
-            _particle.UpdateInputBuffer(_inputBuffer);
-            return true;
+            //TODO:
+            //particle.UpdateInputBuffer(_inputBuffer);
         }
 
-        protected override void OnDestroy()
+        void OnDestroy()
         {
-            base.OnDestroy();
-            _particle.ReleaseBuffer();
+            particle.ReleaseBuffer();
+            gpuTrail.Dispose();
         }
     }
 

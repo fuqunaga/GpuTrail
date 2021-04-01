@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 2343243901435955503}
   - component: {fileID: 4269517395967901056}
   m_Layer: 0
-  m_Name: GPUTrail
+  m_Name: GpuTrail
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -46,10 +46,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   gpuTrail:
     trailNum: 1
-    life: 1
+    life: 10
     inputPerSec: 60
     minNodeDistance: 0.1
-  _cs: {fileID: 7200000, guid: 365dde5f666348548b6a22b895af03ad, type: 3}
+  _cs: {fileID: 7200000, guid: d1a2d7e60a9bbd54e8a06cea0893efff, type: 3}
   _debugDrawLogPoint: 0
 --- !u!114 &4269517395967901056
 MonoBehaviour:
@@ -63,8 +63,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b564af979b749d34daa757bd2fc6bcd7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  createVertexBufferCS: {fileID: 7200000, guid: 365dde5f666348548b6a22b895af03ad,
-    type: 3}
+  updateVertexCS: {fileID: 7200000, guid: 365dde5f666348548b6a22b895af03ad, type: 3}
   _material: {fileID: 2100000, guid: 5f6e1cac686a9714e9048568cfe33abf, type: 2}
   _startWidth: 0.1
   _endWidth: 0.1

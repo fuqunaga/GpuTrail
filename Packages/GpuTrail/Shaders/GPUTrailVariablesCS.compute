@@ -2,7 +2,6 @@
 #define GPUTRAIL_VARIABLES_CS_INCLUDED
 
 #include "GpuTrailInput.cginc"
-#include "GpuTrailVertex.cginc"
 
 struct Trail
 {
@@ -22,8 +21,7 @@ uint _NodeNumPerTrail;
 float _MinNodeDistance;
 float _Time;
 float _Life;
-float3 _ToCameraDir; // for orthographics camera
-float3 _CameraPos;   // for perspective camera
+
 float _StartWidth;
 float _EndWidth;
 
@@ -35,16 +33,6 @@ uint calcTrailIdx(uint nodeIdx)
 uint calcNodeIdx(uint trailIdx, uint nodeIdxInTrail)
 {
 	return (trailIdx * _NodeNumPerTrail) + (nodeIdxInTrail % _NodeNumPerTrail);
-}
-
-inline bool useToCameraDir()
-{
-	return all(_ToCameraDir == 0);
-}
-
-inline float3 calcToCameraDir(float3 pos)
-{
-	return useToCameraDir() ? normalize(_CameraPos - pos) : _ToCameraDir;
 }
 
 #endif // GPUTRAIL_VARIABLES_CS_INCLUDED

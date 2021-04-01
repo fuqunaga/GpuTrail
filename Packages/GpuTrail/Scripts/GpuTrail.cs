@@ -13,6 +13,7 @@ namespace GpuTrailSystem
         {
             public static readonly int TrailNum = Shader.PropertyToID("_TrailNum");
             public static readonly int NodeNumPerTrail = Shader.PropertyToID("_NodeNumPerTrail");
+            public static readonly int Time = Shader.PropertyToID("_Time");
             public static readonly int Life = Shader.PropertyToID("_Life");
             public static readonly int MinNodeDistance = Shader.PropertyToID("_MinNodeDistance");
 
@@ -83,10 +84,9 @@ namespace GpuTrailSystem
             cs.SetInt(CSParam.TrailNum, trailNum);
             cs.SetInt(CSParam.NodeNumPerTrail, nodeNumPerTrail);
             cs.SetFloat(CSParam.MinNodeDistance, minNodeDistance);
-            cs.SetFloat("_Time", Time.time);
+            cs.SetFloat(CSParam.Time, Time.time);
             cs.SetFloat(CSParam.Life, life);
             
-
             cs.SetBuffer(kernel, CSParam.TrailBuffer, trailBuffer);
             cs.SetBuffer(kernel, CSParam.NodeBuffer, nodeBuffer);
         }

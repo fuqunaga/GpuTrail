@@ -1,0 +1,38 @@
+﻿#pragma kernel AppendNode NUM_THREAD_X=32
+
+#include "GpuTrailVariablesCS.compute"
+
+////////////////////////////////////////////////////////////////////////////////
+// AppendNode
+////////////////////////////////////////////////////////////////////////////////
+StructuredBuffer<InputData> _InputBuffer;
+RWStructuredBuffer<Trail> _TrailBuffer;
+RWStructuredBuffer<Node> _NodeBuffer;
+
+[numthreads(NUM_THREAD_X,1,1)]
+void AppendNode (uint3 id : SV_DispatchThreadID)
+{
+	uint trailIdx = id.x;
+	if ( trailIdx < _TrailNum )
+	{
+		Trail trail = _TrailBuffer[trailIdx];
+		uint totalInputNum = trail.totalInputNum;
+		bool isFirst = (totalInputNum==0);
+
+		InputData inputData = _InputBuffer[trailIdx];
+		if ( isFirst || (_MinNodeDistance <= distance(inputData.pos, _NodeBuffer[calcNodeIdx(trailIdx, totalInputNum-1)].pos)))
+		{
+			Node node;
+			node.pos = inputData.pos;
+			node.time = _Time;
+			node.color = inputData.color;
+			uint nodeIdx = calcNodeIdx(trailIdx, totalInputNum);
+			_NodeBuffer[nodeIdx] = node;
+
+			trail.startTime = isFirst ? _Time : trail.startTime;
+			trail.totalInputNum++;
+
+			_TrailBuffer[trailIdx] = trail;
+		}
+	}
+}

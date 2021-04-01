@@ -17,8 +17,7 @@ namespace GpuTrailSystem
         }
 
 
-        public ComputeShader createVertexBufferCS;
-        //public GpuTrail gpuTrail;
+        public ComputeShader updateVertexCS;
         public Material _material;
         public float _startWidth = 1f;
         public float _endWidth = 1f;
@@ -125,15 +124,12 @@ namespace GpuTrailSystem
         protected virtual Vector3 cameraPos => Camera.main.transform.position;
 
 
-        //float _startTime;
-
+ 
         void UpdateVertexBuffer()
         {
             if (_vertexBuffer == null) InitBuffer();
 
-            //if (_startTime <= 0f) _startTime = Time.time;
-
-            var cs = createVertexBufferCS;
+            var cs = updateVertexCS;
             
 
             cs.SetFloat(CSParam.Time, Time.time);
@@ -144,22 +140,20 @@ namespace GpuTrailSystem
             cs.SetFloat("_StartWidth", _startWidth);
             cs.SetFloat("_EndWidth", _endWidth);
 
-            //cs.SetFloat("_StartTime", _startTime);
-
-            //var kernel = cs.FindKernel("CreateVertexBuffer");
-            var kernel = cs.FindKernel("CreateWidth");
+            var kernel = cs.FindKernel("UpdateVertex");
             gpuTrail.SetCSParams(cs, kernel);
             cs.SetBuffer(kernel, "_VertexBuffer", _vertexBuffer);
 
             ComputeShaderUtility.Dispatch(cs, kernel, gpuTrail.nodeBuffer.count);
 
             
-
+            /*
             var nodes = new Node[gpuTrail.nodeBuffer.count];
             gpuTrail.nodeBuffer.GetData(nodes);
 
             var vtxs = new Vertex[_vertexBuffer.count];
             _vertexBuffer.GetData(vtxs);
+            */
         }
 
 

@@ -1,51 +1,28 @@
-﻿#pragma kernel AppendNode
-#pragma kernel CreateWidth
+﻿#pragma kernel UpdateVertex NUM_THREAD_X=512
 
-#define NUM_THREAD_X 512
-
+#include "GpuTrailVertex.cginc"
 #include "GpuTrailVariablesCS.compute"
-
-////////////////////////////////////////////////////////////////////////////////
-// AppendNode
-////////////////////////////////////////////////////////////////////////////////
-StructuredBuffer<InputData> _InputBuffer;
-RWStructuredBuffer<Trail> _TrailBuffer;
-RWStructuredBuffer<Node> _NodeBuffer;
-
-[numthreads(NUM_THREAD_X,1,1)]
-void AppendNode (uint3 id : SV_DispatchThreadID)
-{
-	uint trailIdx = id.x;
-	if ( trailIdx < _TrailNum )
-	{
-		Trail trail = _TrailBuffer[trailIdx];
-		uint totalInputNum = trail.totalInputNum;
-		bool isFirst = (totalInputNum==0);
-
-		InputData inputData = _InputBuffer[trailIdx];
-		if ( isFirst || (_MinNodeDistance <= distance(inputData.pos, _NodeBuffer[calcNodeIdx(trailIdx, totalInputNum-1)].pos)))
-		{
-			Node node;
-			node.pos = inputData.pos;
-			node.time = _Time;
-			node.color = inputData.color;
-			uint nodeIdx = calcNodeIdx(trailIdx, totalInputNum);
-			_NodeBuffer[nodeIdx] = node;
-
-			trail.startTime = isFirst ? _Time : trail.startTime;
-			trail.totalInputNum++;
-
-			_TrailBuffer[trailIdx] = trail;
-		}
-	}
-}
 
 ////////////////////////////////////////////////////////////////////////////////
 // CreateWidth
 ////////////////////////////////////////////////////////////////////////////////
-//StructuredBuffer<Trail> _TrailBuffer;
-//StructuredBuffer<Node> _NodeBuffer;
+StructuredBuffer<Trail> _TrailBuffer;
+StructuredBuffer<Node> _NodeBuffer;
 RWStructuredBuffer<Vertex> _VertexBuffer;
+
+float3 _ToCameraDir; // for orthographics camera
+float3 _CameraPos;   // for perspective camera
+
+
+inline bool useToCameraDir()
+{
+	return all(_ToCameraDir == 0);
+}
+
+inline float3 calcToCameraDir(float3 pos)
+{
+	return useToCameraDir() ? normalize(_CameraPos - pos) : _ToCameraDir;
+}
 
 
 uint calcPrevIdxInTrail(uint idx)
@@ -95,7 +72,7 @@ float3 calcNodeDir(uint trailIdx, uint nodeIdxInTrail, uint totalInputNum)
 }
 
 [numthreads(NUM_THREAD_X,1,1)]
-void CreateWidth (uint3 id : SV_DispatchThreadID)
+void UpdateVertex(uint3 id : SV_DispatchThreadID)
 {
 	uint nodeIdx = id.x;
 	uint trailIdx = nodeIdx / _NodeNumPerTrail;
