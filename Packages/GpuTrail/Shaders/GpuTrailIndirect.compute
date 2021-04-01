@@ -1,4 +1,4 @@
-﻿#pragma kernel AddNode
+﻿#pragma kernel AppendNode
 #pragma kernel CreateWidth
 
 #define NUM_THREAD_X 512
@@ -6,36 +6,36 @@
 #include "GpuTrailVariablesCS.compute"
 
 ////////////////////////////////////////////////////////////////////////////////
-// AddNode
+// AppendNode
 ////////////////////////////////////////////////////////////////////////////////
 StructuredBuffer<InputData> _InputBuffer;
-RWStructuredBuffer<Trail> _TrailBufferW;
-RWStructuredBuffer<Node> _NodeBufferW;
+RWStructuredBuffer<Trail> _TrailBuffer;
+RWStructuredBuffer<Node> _NodeBuffer;
 
 [numthreads(NUM_THREAD_X,1,1)]
-void AddNode (uint3 id : SV_DispatchThreadID)
+void AppendNode (uint3 id : SV_DispatchThreadID)
 {
 	uint trailIdx = id.x;
 	if ( trailIdx < _TrailNum )
 	{
-		Trail trail = _TrailBufferW[trailIdx];
+		Trail trail = _TrailBuffer[trailIdx];
 		uint totalInputNum = trail.totalInputNum;
 		bool isFirst = (totalInputNum==0);
 
 		InputData inputData = _InputBuffer[trailIdx];
-		if ( isFirst || (_MinNodeDistance <= distance(inputData.pos, _NodeBufferW[calcNodeIdx(trailIdx, totalInputNum-1)].pos)))
+		if ( isFirst || (_MinNodeDistance <= distance(inputData.pos, _NodeBuffer[calcNodeIdx(trailIdx, totalInputNum-1)].pos)))
 		{
 			Node node;
 			node.pos = inputData.pos;
 			node.time = _Time;
 			node.color = inputData.color;
 			uint nodeIdx = calcNodeIdx(trailIdx, totalInputNum);
-			_NodeBufferW[nodeIdx] = node;
+			_NodeBuffer[nodeIdx] = node;
 
 			trail.startTime = isFirst ? _Time : trail.startTime;
 			trail.totalInputNum++;
 
-			_TrailBufferW[trailIdx] = trail;
+			_TrailBuffer[trailIdx] = trail;
 		}
 	}
 }
@@ -43,8 +43,8 @@ void AddNode (uint3 id : SV_DispatchThreadID)
 ////////////////////////////////////////////////////////////////////////////////
 // CreateWidth
 ////////////////////////////////////////////////////////////////////////////////
-StructuredBuffer<Trail> _TrailBuffer;
-StructuredBuffer<Node> _NodeBuffer;
+//StructuredBuffer<Trail> _TrailBuffer;
+//StructuredBuffer<Node> _NodeBuffer;
 RWStructuredBuffer<Vertex> _VertexBuffer;
 
 

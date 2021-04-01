@@ -19,6 +19,7 @@ struct Node
 
 uint _TrailNum;
 uint _NodeNumPerTrail;
+float _MinNodeDistance;
 float _Time;
 float _Life;
 float3 _ToCameraDir; // for orthographics camera

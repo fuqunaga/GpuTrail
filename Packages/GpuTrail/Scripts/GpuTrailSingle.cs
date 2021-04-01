@@ -6,44 +6,43 @@ using UnityEngine.Assertions;
 
 namespace GpuTrailSystem
 {
-    public class GpuTrailSingle : GpuTrail
+    public class GpuTrailSingle : MonoBehaviour, IGpuTrailHolder
     {
-        public int totalInputIdx { get; protected set; } = -1;
+        public GpuTrail gpuTrail;
 
+        public ComputeShader _cs;
         public GraphicsBuffer _inputBuffer;
-        public float _minNodeDistance = 0.1f;
-        public int _inputNumMax = 5;
+        //public int _inputNumMax = 5;
 
+        public int totalInputIdx { get; protected set; } = -1;
         LinkedList<Vector3> _posLog = new LinkedList<Vector3>();
 
-        public override int trailNumMax => 1;
+        public GpuTrail GpuTrail => gpuTrail;
 
 
         #region Unity
 
-        protected override void Awake()
-        {
-            base.Awake();
-
-            _inputBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, _inputNumMax, Marshal.SizeOf(typeof(Node)));
-        }
-
 
         void Start()
         {
+            gpuTrail.Init();
+            _inputBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, gpuTrail.trailNum, Marshal.SizeOf(typeof(InputData)));
+
             _posLog.AddLast(transform.position);
+            
+        }
+
+        void OnDestroy()
+        {
+            if (_inputBuffer != null) _inputBuffer.Release();
+
+            gpuTrail?.Dispose();
         }
 
         #endregion
 
 
-        protected override void ReleaseBuffer()
-        {
-            base.ReleaseBuffer();
-            if (_inputBuffer != null) _inputBuffer.Release();
-        }
-
-
+        /*
         void LerpPos(int inputNum, Vector3 pos)
         {
             var timeStep = Time.deltaTime / inputNum;
@@ -60,30 +59,34 @@ namespace GpuTrailSystem
                     time = timePrev + timeStep * i
                 });
             }
-
         }
+        */
 
-        List<Node> _newPoints = new List<Node>();
-        protected override void UpdateNode()
+        public void LateUpdate()
         {
             var pos = transform.position;
             var posPrev = _posLog.Last();
 
-            if ((Vector3.Distance(posPrev, pos) > _minNodeDistance))
+            if ((Vector3.Distance(posPrev, pos) > gpuTrail.minNodeDistance))
             {
-                var inputNum = Mathf.Clamp(Mathf.FloorToInt(Time.deltaTime * _inputPerSec), 1, _inputNumMax);
-                //inputNum = 1;
+                //var inputNum = Mathf.Clamp(Mathf.FloorToInt(Time.deltaTime * gpuTrail.inputPerSec), 1, _inputNumMax);
+                //var inputNum = 1;
 
+                /*
                 if (inputNum > 1)
                 {
                     LerpPos(inputNum, pos);
                 }
+                */
 
-                _newPoints.Add(new Node()
+                var inputdata = new InputData()
                 {
-                    pos = pos,
-                    time = Time.time
-                });
+                    position = pos,
+                    color  = Color.white
+                    //time = Time.time
+                };
+
+                _UpdateNode(inputdata);
 
                 _posLog.AddLast(pos);
 
@@ -93,33 +96,41 @@ namespace GpuTrailSystem
                     _posLog.RemoveFirst();
                 }
             }
-
-            _UpdateNode(_newPoints);
-
-            _newPoints.Clear();
         }
 
-        void _UpdateNode(List<Node> newPoints)
+        void _UpdateNode(InputData inputData)
         {
-            Assert.IsTrue(newPoints.Count <= _inputNumMax);
+            //Assert.IsTrue(newPoints.Count <= _inputNumMax);
 
+            /*
             var inputNum = newPoints.Count;
             if (inputNum > 0)
             {
                 _inputBuffer.SetData(newPoints.ToArray());
                 totalInputIdx += inputNum;
             }
+            */
 
-            if (totalInputIdx >= 0)
+            _inputBuffer.SetData(new[] { inputData });
+
+            //if (totalInputIdx >= 0)
             {
-                _cs.SetInt("_InputNum", inputNum);
-                _cs.SetInt("_TotalInputIdx", totalInputIdx);
+                //_cs.SetInt("_InputNum", inputNum);
+                //_cs.SetInt("_TotalInputIdx", totalInputIdx);
 
                 var kernel = _cs.FindKernel("AppendNode");
                 _cs.SetBuffer(kernel, "_InputBuffer", _inputBuffer);
-                _cs.SetBuffer(kernel, "_NodeBuffer", nodeBuffer);
+                gpuTrail.SetCSParams(_cs, kernel);
 
-                ComputeShaderUtility.Dispatch(_cs, kernel, nodeBuffer.count);
+                ComputeShaderUtility.Dispatch(_cs, kernel, gpuTrail.trailBuffer.count);
+
+                /*
+                var trail = new Trail[gpuTrail.trailBuffer.count];
+                gpuTrail.trailBuffer.GetData(trail);
+
+                var node = new Node[gpuTrail.nodeBuffer.count];
+                gpuTrail.nodeBuffer.GetData(node);
+                */
             }
         }
 
@@ -135,7 +146,7 @@ namespace GpuTrailSystem
                 Gizmos.color = Color.magenta;
                 foreach( var p in _posLog)
                 {
-                    Gizmos.DrawWireSphere(p, _minNodeDistance);
+                    Gizmos.DrawWireSphere(p, gpuTrail.minNodeDistance);
                 }
             }
         }

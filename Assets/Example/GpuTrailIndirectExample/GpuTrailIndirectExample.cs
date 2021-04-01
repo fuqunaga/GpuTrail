@@ -4,19 +4,11 @@
     {
         public GpuTrailIndirectSampleParticle _particle;
 
-        public override int trailNumMax
-        {
-            get
-            {
-                return _particle._particleNum;
-            }
-        }
-
         protected override void Awake()
         {
             base.Awake();
-
             _particle.Init();
+            gpuTrail.trailNum = _particle._particleNum;
         }
 
 
@@ -27,10 +19,9 @@
             return true;
         }
 
-        protected override void ReleaseBuffer()
+        protected override void OnDestroy()
         {
-            base.ReleaseBuffer();
-
+            base.OnDestroy();
             _particle.ReleaseBuffer();
         }
     }
