@@ -49,6 +49,7 @@ MonoBehaviour:
     life: 10
     inputPerSec: 60
     minNodeDistance: 0.1
+    appendNodeCS: {fileID: 7200000, guid: d1a2d7e60a9bbd54e8a06cea0893efff, type: 3}
   _cs: {fileID: 7200000, guid: d1a2d7e60a9bbd54e8a06cea0893efff, type: 3}
   _debugDrawLogPoint: 0
 --- !u!114 &4269517395967901056

@@ -4,14 +4,14 @@ namespace GpuTrailSystem.Example
 {
     public class GpuTrailIndirectExample : MonoBehaviour, IGpuTrailHolder
     {
-        public GpuTrailIndirectSampleParticle particle;
+        public ComputeShaderParticle particle;
 
         [SerializeField]
         protected GpuTrail gpuTrail;
 
         public GpuTrail GpuTrail => gpuTrail;
 
-        void Awake()
+        void Start()
         {
             particle.Init();
             gpuTrail.trailNum = particle._particleNum;
@@ -19,17 +19,21 @@ namespace GpuTrailSystem.Example
         }
 
 
-
         void Update()
         {
-            //TODO:
-            //particle.UpdateInputBuffer(_inputBuffer);
+            particle.UpdateInputBuffer(gpuTrail.inputBuffer_Pos);
+            gpuTrail.DispatchAppendNode();
         }
 
         void OnDestroy()
         {
             particle.ReleaseBuffer();
             gpuTrail.Dispose();
+        }
+
+        void OnDrawGizmosSelected()
+        {
+            particle.DrawGizmos();
         }
     }
 

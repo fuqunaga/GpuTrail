@@ -1,12 +1,12 @@
 ﻿using UnityEngine;
 using System.Runtime.InteropServices;
-
+using Unity.Collections;
 
 namespace GpuTrailSystem.Example
 {
 
     [System.Serializable]
-    public class GpuTrailIndirectSampleParticle
+    public class ComputeShaderParticle
     {
         struct Particle
         {
@@ -23,26 +23,25 @@ namespace GpuTrailSystem.Example
         public float _forceRate = 0.01f;
         public float _damping = 0.99f;
         public float _gravity = 0.01f;
-        public Vector3 _bounds;
+        public Vector3 _bounds = Vector3.one * 10f;
 
         public void Init()
         {
             _particleBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, _particleNum, Marshal.SizeOf<Particle>());
 
-            var data = new Particle[_particleBuffer.count];
-            for (var i = 0; i < data.Length; ++i)
+            var particles = new Particle[_particleBuffer.count];
+            for (var i = 0; i < particles.Length; ++i)
             {
-                data[i] = new Particle
+                particles[i] = new Particle
                 {
-                    pos = -Vector3.up * _bounds.y * 0.5f,
+                    pos = Random.insideUnitSphere * _bounds.y * 0.1f,
                     velocity = Vector3.Scale(Random.insideUnitSphere, Vector3.up * _startSpeed)
                 };
             }
 
-            _particleBuffer.SetData(data);
+            _particleBuffer.SetData(particles);
         }
 
-        const int NUM_THREAD_X = 8;
         public void UpdateInputBuffer(GraphicsBuffer inputBuffer)
         {
             _particleCS.SetFloat("_Time", Time.time);
@@ -54,7 +53,7 @@ namespace GpuTrailSystem.Example
 
             var kernel = _particleCS.FindKernel("CSMain");
             _particleCS.SetBuffer(kernel, "_ParticleBuffer", _particleBuffer);
-            _particleCS.SetBuffer(kernel, "_InputBuffer", inputBuffer);
+            _particleCS.SetBuffer(kernel, "_InputBuffer_Pos", inputBuffer);
 
             ComputeShaderUtility.Dispatch(_particleCS, kernel, _particleBuffer.count);
         }
@@ -62,6 +61,22 @@ namespace GpuTrailSystem.Example
         public void ReleaseBuffer()
         {
             if (_particleBuffer != null) _particleBuffer.Release();
+        }
+
+
+        Particle[] particles;
+        public void DrawGizmos()
+        {
+            if (particles == null) particles = new Particle[_particleBuffer.count];
+
+            _particleBuffer.GetData(particles);
+
+            const float radius = 0.1f;
+            Gizmos.color = Color.red;
+            for(var i=0; i<particles.Length; ++i)
+            {
+                Gizmos.DrawWireSphere(particles[i].pos, radius);
+            }
         }
     }
 }

@@ -4,11 +4,6 @@ using UnityEngine;
 
 namespace GpuTrailSystem
 {
-    public struct InputData
-    {
-        public Vector3 position;
-        public Color color;
-    }
 
     public abstract class GpuTrailIndirect
     {
@@ -19,7 +14,7 @@ namespace GpuTrailSystem
 
         protected virtual void Awake()
         {
-            _inputBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, gpuTrail.trailNum, Marshal.SizeOf(typeof(InputData)));
+            //_inputBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, gpuTrail.trailNum, Marshal.SizeOf(typeof(InputData)));
         }
 
         protected virtual void OnDestroy()

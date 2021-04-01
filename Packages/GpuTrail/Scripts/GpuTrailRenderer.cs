@@ -146,13 +146,14 @@ namespace GpuTrailSystem
 
             ComputeShaderUtility.Dispatch(cs, kernel, gpuTrail.nodeBuffer.count);
 
-            
             /*
             var nodes = new Node[gpuTrail.nodeBuffer.count];
             gpuTrail.nodeBuffer.GetData(nodes);
-
+            nodes = nodes.Take(100).ToArray();
+            
             var vtxs = new Vertex[_vertexBuffer.count];
             _vertexBuffer.GetData(vtxs);
+            vtxs = vtxs.Take(100).ToArray();
             */
         }
 

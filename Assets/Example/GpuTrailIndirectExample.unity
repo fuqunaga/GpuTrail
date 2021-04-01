@@ -209,7 +209,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 104940725}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -100}
+  m_LocalPosition: {x: 0, y: 0, z: -150}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 310526803}
@@ -240,7 +240,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 310526802}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: -25, z: 0}
+  m_LocalPosition: {x: 0, y: -20, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 104940730}
@@ -331,6 +331,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1988754121}
   - component: {fileID: 1988754122}
+  - component: {fileID: 1988754120}
   m_Layer: 0
   m_Name: GPUTrailIndirectSample
   m_TagString: Untagged
@@ -338,6 +339,23 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
+--- !u!114 &1988754120
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1988754119}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b564af979b749d34daa757bd2fc6bcd7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  updateVertexCS: {fileID: 7200000, guid: 365dde5f666348548b6a22b895af03ad, type: 3}
+  _material: {fileID: 2100000, guid: 5f6e1cac686a9714e9048568cfe33abf, type: 2}
+  _startWidth: 0.1
+  _endWidth: 0.1
+  _debugDrawVertexBuf: 0
 --- !u!4 &1988754121
 Transform:
   m_ObjectHideFlags: 0
@@ -364,16 +382,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 665b0a84258e7534787071e45a68c201, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _cs: {fileID: 7200000, guid: 365dde5f666348548b6a22b895af03ad, type: 3}
-  _material: {fileID: 2100000, guid: 5f6e1cac686a9714e9048568cfe33abf, type: 2}
-  _life: 5
-  _inputPerSec: 60
-  _inputNumMax: 5
-  _lerpType: 0
-  _minNodeDistance: 0.1
-  _startWidth: 0.1
-  _endWidth: 0.1
-  _particle:
+  particle:
     _particleCS: {fileID: 7200000, guid: 16daaa733f6a1194394beb0d2f0d6fb9, type: 3}
     _particleNum: 10000
     _startSpeed: 1
@@ -381,3 +390,9 @@ MonoBehaviour:
     _damping: 0.95
     _gravity: 0.001
     _bounds: {x: 100, y: 50, z: 100}
+  gpuTrail:
+    appendNodeCS: {fileID: 7200000, guid: d1a2d7e60a9bbd54e8a06cea0893efff, type: 3}
+    trailNum: 1
+    life: 10
+    inputPerSec: 60
+    minNodeDistance: 0.1

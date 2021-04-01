@@ -1,8 +1,6 @@
 ﻿#ifndef GPUTRAIL_VARIABLES_CS_INCLUDED
 #define GPUTRAIL_VARIABLES_CS_INCLUDED
 
-#include "GpuTrailInput.cginc"
-
 struct Trail
 {
 	float startTime;

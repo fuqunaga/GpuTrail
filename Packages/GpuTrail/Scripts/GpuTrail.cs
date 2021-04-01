@@ -19,14 +19,17 @@ namespace GpuTrailSystem
 
             public static readonly int TrailBuffer = Shader.PropertyToID("_TrailBuffer");
             public static readonly int NodeBuffer = Shader.PropertyToID("_NodeBuffer");
+
+            public static readonly int InputBuffer_Pos = Shader.PropertyToID("_InputBuffer_Pos");
+            public static readonly int InputBuffer_Color = Shader.PropertyToID("_InputBuffer_Color");
+
         }
 
-
+        public ComputeShader appendNodeCS;
         public int trailNum = 1;
         public float life = 10f;
         public float inputPerSec = 60f;
         public float minNodeDistance = 0.1f;
-
 
 
         public int nodeNumPerTrail { get; protected set; }
@@ -35,6 +38,11 @@ namespace GpuTrailSystem
         public GraphicsBuffer trailBuffer { get; protected set; }
 
         public GraphicsBuffer nodeBuffer { get; protected set; }
+
+
+        public GraphicsBuffer inputBuffer_Pos { get; protected set; }
+
+        public GraphicsBuffer inputBuffer_Color { get; protected set; }
 
 
         public void Init()
@@ -63,6 +71,13 @@ namespace GpuTrailSystem
 
             nodeBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, nodeBufferSize, Marshal.SizeOf<Node>());
             nodeBuffer.SetData(Enumerable.Repeat(default(Node), nodeBufferSize).ToArray());
+
+
+            inputBuffer_Pos = new GraphicsBuffer(GraphicsBuffer.Target.Structured, trailNum, Marshal.SizeOf<Vector3>());
+            inputBuffer_Pos.SetData(Enumerable.Repeat(default(Vector3), trailNum).ToArray());
+
+            inputBuffer_Color = new GraphicsBuffer(GraphicsBuffer.Target.Structured, trailNum, Marshal.SizeOf<Color>());
+            inputBuffer_Color.SetData(Enumerable.Repeat(Color.gray, trailNum).ToArray());
         }
 
 
@@ -71,6 +86,8 @@ namespace GpuTrailSystem
         {
             if (trailBuffer != null) trailBuffer.Release();
             if (nodeBuffer != null) nodeBuffer.Release();
+            if (inputBuffer_Pos != null) inputBuffer_Pos.Release();
+            if (inputBuffer_Color != null) inputBuffer_Color.Release();
         }
 
 
@@ -89,6 +106,26 @@ namespace GpuTrailSystem
             
             cs.SetBuffer(kernel, CSParam.TrailBuffer, trailBuffer);
             cs.SetBuffer(kernel, CSParam.NodeBuffer, nodeBuffer);
+
+            cs.SetBuffer(kernel, CSParam.InputBuffer_Pos, inputBuffer_Pos);
+            cs.SetBuffer(kernel, CSParam.InputBuffer_Color, inputBuffer_Color);
+        }
+
+        public void DispatchAppendNode()
+        {
+            var kernel = appendNodeCS.FindKernel("AppendNode");
+            SetCSParams(appendNodeCS, kernel);
+
+            ComputeShaderUtility.Dispatch(appendNodeCS, kernel, trailNum);
+
+            /*
+            var inputPos = new Vector3[inputBuffer_Pos.count];
+            inputBuffer_Pos.GetData(inputPos);
+
+            var nodes = new Node[nodeBuffer.count];
+            nodeBuffer.GetData(nodes);
+            nodes = nodes.Take(100).ToArray();
+            *///
         }
     }
 }
