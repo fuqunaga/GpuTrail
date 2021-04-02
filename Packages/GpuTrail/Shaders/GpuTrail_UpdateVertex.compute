@@ -1,7 +1,7 @@
 ﻿#pragma kernel UpdateVertex NUM_THREAD_X=512
 
 #include "GpuTrailVertex.cginc"
-#include "GpuTrailVariablesCS.compute"
+#include "GpuTrailCSInclude.cginc"
 
 ////////////////////////////////////////////////////////////////////////////////
 // CreateWidth
@@ -12,7 +12,8 @@ RWStructuredBuffer<Vertex> _VertexBuffer;
 
 float3 _ToCameraDir; // for orthographics camera
 float3 _CameraPos;   // for perspective camera
-
+float _StartWidth;
+float _EndWidth;
 
 inline bool useToCameraDir()
 {
@@ -71,6 +72,8 @@ float3 calcNodeDir(uint trailIdx, uint nodeIdxInTrail, uint totalInputNum)
 	return  normalize(dirPrev + dirNext);
 }
 
+#if 1
+
 [numthreads(NUM_THREAD_X,1,1)]
 void UpdateVertex(uint3 id : SV_DispatchThreadID)
 {
@@ -114,3 +117,58 @@ void UpdateVertex(uint3 id : SV_DispatchThreadID)
 		_VertexBuffer[vIdx+1] = v1;
 	}
 }
+
+#else
+
+#include "GpuTrailCullingInclude.cginc"
+
+[numthreads(NUM_THREAD_X,1,1)]
+void UpdateVertex(uint3 id : SV_DispatchThreadID)
+{
+	//uint nodeIdx = id.x;
+	//uint trailIdx = nodeIdx / _NodeNumPerTrail;
+	uint trailIdx = GetTrailIdxWithCulling(id.x);
+	if ( trailIdx < _TrailNum )
+	{
+		Trail trail = _TrailBuffer[trailIdx];
+		uint totalInputNum = trail.totalInputNum;
+		uint nodeIdxInTrail = (totalInputNum <= _NodeNumPerTrail) ? 0 : calcNextIdxInTrail(totalInputNum-1);
+		uint startNodeIdx = calcNodeIdxFromInTrail(trailIdx, 0);
+
+		Vertex v0 = GetDefaultVertex();
+		Vertex v1 = GetDefaultVertex();
+
+		for(uint i = 0; i<_NodeNumPerTrail; ++i)
+		{
+			Node node = getNode(trailIdx, nodeIdxInTrail, totalInputNum);
+
+			// Calc v0,v1
+			// Use previous v0,v1 if node has not been created yet.
+			if (node.time > 0)
+			{
+				float life = min(_Life, _Time - trail.startTime);
+				float rate = life <= 0 ? 1 : max(0, 1 - ((_Time - node.time) / life));
+
+				float3 pos = node.pos;
+				float3 dir = calcNodeDir(trailIdx, nodeIdxInTrail, totalInputNum);
+
+				float3 toCameraDir = calcToCameraDir(pos);
+				float3 right = normalize(cross(dir, toCameraDir)) * lerp(_EndWidth, _StartWidth, rate) * 0.5f;
+
+				v0.pos = pos - right;
+				v0.uv = float2(rate, 0);
+				v0.color = node.color;
+
+				v1.pos = pos + right;
+				v1.uv = float2(rate, 1);
+				v1.color = node.color;
+			}
+
+			uint vIdx = (startNodeIdx + i) * 2;
+			_VertexBuffer[vIdx] = v0;
+			_VertexBuffer[vIdx+1] = v1;
+		}
+	}
+}
+
+#endif

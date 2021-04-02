@@ -2,7 +2,7 @@
 {
     public class GpuTrailIndirectCullingSample : GpuTrailIndirectCulling
     {
-        public ComputeShaderParticle _particle;
+        public GpuTrailIndirectExampleParticle _particle;
 
 
         protected override void Awake()

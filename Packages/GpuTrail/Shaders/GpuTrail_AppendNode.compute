@@ -1,6 +1,6 @@
 ﻿#pragma kernel AppendNode NUM_THREAD_X=32
 
-#include "GpuTrailVariablesCS.compute"
+#include "GpuTrailCSInclude.cginc"
 
 StructuredBuffer<float3> _InputBuffer_Pos;
 StructuredBuffer<float4> _InputBuffer_Color;

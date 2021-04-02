@@ -4,10 +4,12 @@ namespace GpuTrailSystem.Example
 {
     public class GpuTrailIndirectExample : MonoBehaviour, IGpuTrailHolder
     {
-        public ComputeShaderParticle particle;
+        public GpuTrailIndirectExampleParticle particle;
+        public bool particleGizmosEnable;
 
         [SerializeField]
         protected GpuTrail gpuTrail;
+        
 
         public GpuTrail GpuTrail => gpuTrail;
 
@@ -33,7 +35,10 @@ namespace GpuTrailSystem.Example
 
         void OnDrawGizmosSelected()
         {
-            particle.DrawGizmos();
+            if (particleGizmosEnable)
+            {
+                particle.DrawGizmos();
+            }
         }
     }
 

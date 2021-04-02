@@ -20,10 +20,6 @@ float _MinNodeDistance;
 float _Time;
 float _Life;
 
-float _StartWidth;
-float _EndWidth;
-
-
 uint calcTrailIdx(uint nodeIdx)
 {
 	return nodeIdx / _NodeNumPerTrail;

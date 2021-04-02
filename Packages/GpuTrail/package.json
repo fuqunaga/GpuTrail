@@ -1,7 +1,7 @@
 {
   "name": "ga.fuquna.gputrail",
   "displayName": "GpuTrail",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "unity": "2020.2",
   "keywords": [
     "Gpu",

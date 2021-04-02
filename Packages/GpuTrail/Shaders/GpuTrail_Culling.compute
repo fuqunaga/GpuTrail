@@ -1,58 +1,53 @@
-﻿#pragma kernel ClearIsInView
-#pragma kernel UpdateIsInView
-#pragma kernel UpdateTrailAppend
-#pragma kernel CopyVertex
+﻿#pragma kernel UpdateTrailIdxBuffer NUM_THREAD_X=32
+//#pragma kernel UpdateTrailAppend NUM_THREAD_X=32
+//#pragma kernel CopyVertex NUM_THREAD_X=512
 
-#define NUM_THREAD_X 512
-
-#include "GpuTrailVariablesCS.compute"
+#include "GpuTrailCSInclude.cginc"
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Clear/UpdateIsInView
+// UpdateTrailIdxBuffer
 ////////////////////////////////////////////////////////////////////////////////
-RWStructuredBuffer<bool> _IsInViewW;
+float _TrailWidth;
+float3 _CameraPos;
+float4x3 _CameraFrustumNormals;
+StructuredBuffer<Node> _NodeBuffer;
+AppendStructuredBuffer<uint> _TrailIndexBuffer;
 
 [numthreads(NUM_THREAD_X,1,1)]
-void ClearIsInView (uint3 id : SV_DispatchThreadID)
+void UpdateTrailIdxBuffer (uint3 id : SV_DispatchThreadID)
 {
+	//uint nodeIdx = id.x;
+	//uint trailIdx = calcTrailIdx(nodeIdx);
 	uint trailIdx = id.x;
 	if ( trailIdx < _TrailNum )
 	{
-		_IsInViewW[trailIdx] = false;
-	}
-}
-
-float4x3 _CameraFrustumNormals;
-StructuredBuffer<Node> _NodeBuffer;
-
-[numthreads(NUM_THREAD_X,1,1)]
-void UpdateIsInView (uint3 id : SV_DispatchThreadID)
-{
-	uint nodeIdx = id.x;
-	uint trailIdx = calcTrailIdx(nodeIdx);
-	if ( trailIdx < _TrailNum )
-	{
-		Node node = _NodeBuffer[nodeIdx];
-		if ( node.time > 0)
+		uint nodeIdxStart = calcNodeIdx(trailIdx, 0);
+		uint nodeIdxEnd = nodeIdxStart + _NodeNumPerTrail;
+		for(uint nodeIdx = nodeIdxStart; nodeIdx < nodeIdxEnd; nodeIdx++)
 		{
-			// CheckCulling!
-			float3 posFromCamera = node.pos - _CameraPos;
-			float width = max(_StartWidth, _EndWidth);
-
-			if ( 
-					(dot(_CameraFrustumNormals[0], posFromCamera) > -width ) 
-					&& (dot(_CameraFrustumNormals[1], posFromCamera) > -width )
-					&& (dot(_CameraFrustumNormals[2], posFromCamera) > -width )
-					&& (dot(_CameraFrustumNormals[3], posFromCamera) > -width )
-			   )
+			Node node = _NodeBuffer[nodeIdx];
+			if ( node.time > 0)
 			{
-				_IsInViewW[trailIdx] = true;
+				// CheckCulling!
+				float3 posFromCamera = node.pos - _CameraPos;
+
+				if ( 
+						(dot(_CameraFrustumNormals[0], posFromCamera) > -_TrailWidth) 
+						&& (dot(_CameraFrustumNormals[1], posFromCamera) > -_TrailWidth)
+						&& (dot(_CameraFrustumNormals[2], posFromCamera) > -_TrailWidth)
+						&& (dot(_CameraFrustumNormals[3], posFromCamera) > -_TrailWidth)
+				)
+				{
+					_TrailIndexBuffer.Append(trailIdx);
+					break;
+				}
 			}
 		}
 	}
 }
 
+/*
 ////////////////////////////////////////////////////////////////////////////////
 // UpdateTrailAppend
 ////////////////////////////////////////////////////////////////////////////////
@@ -68,7 +63,10 @@ void UpdateTrailAppend (uint3 id : SV_DispatchThreadID)
 		if ( _IsInView[trailIdx] ) _IsInViewAppend.Append(trailIdx);
 	}
 }
+*/
 
+
+/*
 ////////////////////////////////////////////////////////////////////////////////
 // CopyVertex
 ////////////////////////////////////////////////////////////////////////////////
@@ -96,5 +94,5 @@ void CopyVertex (uint3 id : SV_DispatchThreadID)
 
 		_VertexBufferDst[vertexIdx] = _VertexBufferSrc[vertexIdxSrc];
 	}
-
 }
+*/
