@@ -38,17 +38,17 @@ namespace GpuTrailSystem
 
         #region Unity
 
-        void OnEnable()
+        protected virtual void OnEnable()
         {
             RenderPipelineManager.beginCameraRendering += OnBeginCameraRendering;
         }
 
-        void OnDisable()
+        protected virtual void OnDisable()
         {
             RenderPipelineManager.beginCameraRendering -= OnBeginCameraRendering;
         }
 
-        void Start()
+        protected virtual void Start()
         {
             if (gpuTrailHolder == null)
             {
@@ -56,12 +56,12 @@ namespace GpuTrailSystem
             }
         }
 
-        void LateUpdate()
+        protected virtual void LateUpdate()
         {
             UpdateVertexBuffer();
         }
 
-        void OnRenderObject()
+        protected virtual void OnRenderObject()
         {
             if (Camera.current != null)
             {
@@ -77,7 +77,7 @@ namespace GpuTrailSystem
         }
 
 
-        public void OnDestroy()
+        public virtual void OnDestroy()
         {
             ReleaseBuffers();
         }
