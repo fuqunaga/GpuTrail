@@ -34,6 +34,7 @@ Pass{
 		Out.pos = UnityObjectToClipPos(float4(vtx.pos, 1.0));
 		Out.uv = vtx.uv;
 		Out.col = lerp(_EndColor, _StartColor, vtx.uv.x);
+		//Out.col = vtx.color;
 
 		return Out;
 	}

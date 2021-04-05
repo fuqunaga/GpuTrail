@@ -633,7 +633,7 @@ MonoBehaviour:
   particleGizmosEnable: 0
   gpuTrail:
     appendNodeCS: {fileID: 7200000, guid: d1a2d7e60a9bbd54e8a06cea0893efff, type: 3}
-    trailNum: 1
+    trailNum: 10000
     life: 10
     inputPerSec: 60
     minNodeDistance: 0.1
@@ -667,7 +667,7 @@ MonoBehaviour:
   _material: {fileID: 2100000, guid: 5f6e1cac686a9714e9048568cfe33abf, type: 2}
   _startWidth: 0.05
   _endWidth: 0.02
-  cullingEnable: 0
+  cullingEnable: 1
   updateVertexEnable: 1
   renderingEnable: 1
   _debugDrawVertexBuf: 0

@@ -26,7 +26,7 @@ namespace GpuTrailSystem
         public static class ShaderParam
         {
             public static readonly int VertexNumPerTrail = Shader.PropertyToID("_VertexNumPerTrail");
-            public static readonly int IndexBuffer  = Shader.PropertyToID("_IndexBuffer");
+            public static readonly int IndexBuffer = Shader.PropertyToID("_IndexBuffer");
             public static readonly int VertexBuffer = Shader.PropertyToID("_VertexBuffer");
 
             public static readonly int TrailIndexBuffer = Shader.PropertyToID("_TrailIndexBuffer");
@@ -82,7 +82,7 @@ namespace GpuTrailSystem
                 gpuTrailHolder = GetComponent<IGpuTrailHolder>();
             }
 
-            if(gpuTrailCulling == null)
+            if (gpuTrailCulling == null)
             {
                 gpuTrailCulling = GetComponent<IGpuTrailCulling>();
             }
@@ -181,26 +181,43 @@ namespace GpuTrailSystem
             cs.SetVector(CSParam.ToCameraDir, isCameraOrthographic ? toOrthographicCameraDir : Vector3.zero);
             cs.SetVector(CSParam.CameraPos, cameraPos);
 
-            cs.SetFloat(CSParam.StartWidth,_startWidth);
+            cs.SetFloat(CSParam.StartWidth, _startWidth);
             cs.SetFloat(CSParam.EndWidth, _endWidth);
 
             var kernel = cs.FindKernel(CSParam.Kernel_UpdateVertex);
             gpuTrail.SetCSParams(cs, kernel);
+            if (CullingEnable)
+            {
+                gpuTrailCulling.SetComputeShaderParameterEnable(cs, kernel);
+            }
+            else
+            {
+                if (gpuTrailCulling != null) gpuTrailCulling.SetComputeShaderParameterDisable(cs);
+            }
             cs.SetBuffer(kernel, CSParam.VertexBuffer, _vertexBuffer);
 
-            ComputeShaderUtility.Dispatch(cs, kernel, gpuTrail.nodeBuffer.count);
+            //ComputeShaderUtility.Dispatch(cs, kernel, gpuTrail.nodeBuffer.count);
+            ComputeShaderUtility.Dispatch(cs, kernel, gpuTrail.trailNum);
 
-            ～このへん。Vertexを作るTrailをCullingされてないものだけにする～
 
-            /*
+#if false
             var nodes = new Node[gpuTrail.nodeBuffer.count];
             gpuTrail.nodeBuffer.GetData(nodes);
-            nodes = nodes.Take(100).ToArray();
-            
+            //nodes = nodes.Take(100).ToArray();
+            nodes = nodes.ToArray();
+
             var vtxs = new Vertex[_vertexBuffer.count];
             _vertexBuffer.GetData(vtxs);
-            vtxs = vtxs.Take(100).ToArray();
-            */
+            //vtxs = vtxs.Take(100).ToArray();
+            vtxs = vtxs.ToArray();
+            for (var i = 0; i < vtxs.Length; ++i)
+            {
+                if (vtxs[i].pos == Vector3.zero)
+                {
+                    Debug.Log(i);
+                }
+            }
+#endif
         }
 
 
@@ -242,7 +259,7 @@ namespace GpuTrailSystem
             }
             else
             {
-                if ( gpuTrailCulling != null)
+                if (gpuTrailCulling != null)
                 {
                     gpuTrailCulling.SetMaterialParameterDisable(_material);
                 }
@@ -252,7 +269,7 @@ namespace GpuTrailSystem
         }
 
 
-        #region Debug
+#region Debug
 
         public bool _debugDrawVertexBuf;
 
@@ -275,6 +292,6 @@ namespace GpuTrailSystem
             }
         }
 
-        #endregion
+#endregion
     }
 }

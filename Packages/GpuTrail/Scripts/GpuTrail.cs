@@ -125,7 +125,7 @@ namespace GpuTrailSystem
             var nodes = new Node[nodeBuffer.count];
             nodeBuffer.GetData(nodes);
             nodes = nodes.Take(100).ToArray();
-            *///
+            */
         }
     }
 }

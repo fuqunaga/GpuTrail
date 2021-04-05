@@ -9,7 +9,7 @@ Material:
   m_PrefabAsset: {fileID: 0}
   m_Name: GpuTrail
   m_Shader: {fileID: 4800000, guid: 753c44b9fec068b40a762cfa65734feb, type: 3}
-  m_ShaderKeywords: GPUTRAIL_TRAIL_INDEX_ON
+  m_ShaderKeywords: 
   m_LightmapFlags: 5
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0

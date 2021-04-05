@@ -88,12 +88,12 @@ namespace GpuTrailSystem
             {
                 tmpBuf = new GraphicsBuffer(GraphicsBuffer.Target.IndirectArguments, 1, sizeof(uint));
             }
-            GraphicsBuffer.CopyCount(trailIdxBuffer, tmpBuf, 0);
+            GraphicsBuffer.CopyCount(trailIndexBuffer, tmpBuf, 0);
             var count = new uint[1];
             tmpBuf.GetData(count);
             Debug.Log(count.First());
-            var trailIdx = new uint[trailIdxBuffer.count];
-            trailIdxBuffer.GetData(trailIdx);
+            var trailIdx = new uint[trailIndexBuffer.count];
+            trailIndexBuffer.GetData(trailIdx);
         }
         GraphicsBuffer tmpBuf;
 #endif
