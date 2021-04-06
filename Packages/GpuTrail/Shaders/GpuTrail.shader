@@ -5,50 +5,49 @@ Properties {
 }
    
 SubShader {
-Pass{
-	Cull Off Fog { Mode Off }
-	ZWrite Off
-	Blend SrcAlpha One
+	Tags { "Queue" = "Transparent" }
 
-	CGPROGRAM
-	#pragma target 5.0
-	#pragma shader_feature GPUTRAIL_TRAIL_INDEX_ON
+	Pass{
+		Cull Off Fog { Mode Off }
+		ZWrite Off
+		Blend SrcAlpha One
 
-	#pragma vertex vert
-	#pragma fragment frag
+		CGPROGRAM
+		#pragma target 5.0
 
-	#include "UnityCG.cginc"
-	#include "GpuTrailShaderInclude.cginc"
+		#pragma vertex vert
+		#pragma fragment frag
 
-	struct vs_out {
-		float4 pos : SV_POSITION;
-		float4 col : COLOR;
-		float2 uv  : TEXCOORD;
-	};
+		#include "UnityCG.cginc"
+		#include "GpuTrailShaderInclude.cginc"
 
-	vs_out vert (uint id : SV_VertexID, uint iId : SV_InstanceID)
-	{
-		vs_out Out;
-		Vertex vtx = GetVertex(id, iId);
+		struct vs_out {
+			float4 pos : SV_POSITION;
+			float4 col : COLOR;
+			float2 uv  : TEXCOORD;
+		};
 
-		Out.pos = UnityObjectToClipPos(float4(vtx.pos, 1.0));
-		Out.uv = vtx.uv;
-		Out.col = lerp(_EndColor, _StartColor, vtx.uv.x);
-		//Out.col = vtx.color;
+		vs_out vert (uint id : SV_VertexID, uint iId : SV_InstanceID)
+		{
+			vs_out Out;
+			Vertex vtx = GetVertex(id, iId);
 
-		return Out;
-	}
+			Out.pos = UnityObjectToClipPos(float4(vtx.pos, 1.0));
+			Out.uv = vtx.uv;
+			Out.col = lerp(_EndColor, _StartColor, vtx.uv.x);
+			//Out.col = vtx.color;
 
-	fixed4 frag (vs_out In) : COLOR0
-	{
-		return In.col;
-	}
+			return Out;
+		}
 
-	ENDCG
+		fixed4 frag (vs_out In) : COLOR0
+		{
+			return In.col;
+		}
+
+		ENDCG
    
-   }
-}
-
-Fallback Off
+	   }
+	}
 }
 

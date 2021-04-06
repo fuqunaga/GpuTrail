@@ -1,8 +1,10 @@
 ﻿using System.Linq;
 using System.Runtime.InteropServices;
+using Unity.Collections;
 using UnityEngine;
+using UnityEngine.Profiling;
 using UnityEngine.Rendering;
-
+using UnityEngine.XR;
 
 namespace GpuTrailSystem
 {
@@ -21,6 +23,10 @@ namespace GpuTrailSystem
             public static readonly int StartWidth = Shader.PropertyToID("_StartWidth");
             public static readonly int EndWidth = Shader.PropertyToID("_EndWidth");
             public static readonly int VertexBuffer = Shader.PropertyToID("_VertexBuffer");
+
+
+            public static readonly string Kernel_ArgsBufferMultiply = "ArgsBufferMultiply";
+            public static readonly int ArgsBuffer = Shader.PropertyToID("_ArgsBuffer");
         }
 
         public static class ShaderParam
@@ -35,7 +41,7 @@ namespace GpuTrailSystem
         #endregion
 
 
-        public ComputeShader updateVertexCS;
+        public ComputeShader computeShader;
         public Material _material;
         public float _startWidth = 1f;
         public float _endWidth = 1f;
@@ -45,6 +51,7 @@ namespace GpuTrailSystem
         protected GraphicsBuffer _vertexBuffer;
         protected GraphicsBuffer _indexBuffer;
         protected GraphicsBuffer argsBuffer;
+
 
         protected Camera currentCamera;
 
@@ -90,6 +97,25 @@ namespace GpuTrailSystem
 
         protected virtual void LateUpdate()
         {
+            if (_vertexBuffer == null) InitBuffer();
+
+
+            if (CullingEnable)
+            {
+                float width = Mathf.Max(_startWidth, _endWidth);
+                gpuTrailCulling.UpdateTrailIndexBuffer(TargetCamera, gpuTrail, width);
+
+                UpdateArgsBuffer();
+            }
+            else
+            {
+                if (gpuTrailCulling != null)
+                {
+                    ResetArgsBuffer();
+                }
+            }
+
+
             if (updateVertexEnable)
             {
                 UpdateVertexBuffer();
@@ -123,6 +149,7 @@ namespace GpuTrailSystem
         #endregion
 
 
+
         protected virtual void InitBuffer()
         {
             _vertexBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, vertexBufferSize, Marshal.SizeOf<Vertex>()); // 1 node to 2 vtx(left,right)
@@ -144,17 +171,18 @@ namespace GpuTrailSystem
 
             _indexBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, indexData.Length, Marshal.SizeOf<uint>()); // 1 node to 2 triangles(6vertexs)
             _indexBuffer.SetData(indexData);
+
+            argsBuffer = new GraphicsBuffer(GraphicsBuffer.Target.IndirectArguments, 4, sizeof(uint));
+            ResetArgsBuffer();
         }
 
 
 
         protected virtual void ReleaseBuffers()
         {
-            var buffers = new[] { _vertexBuffer, _indexBuffer, argsBuffer }.Where(buf => buf != null);
-            foreach (var buffer in buffers)
-            {
-                buffer.Release();
-            }
+            if (_vertexBuffer != null) { _vertexBuffer.Release(); _vertexBuffer = null; }
+            if (_indexBuffer != null) { _indexBuffer.Release(); _indexBuffer = null; }
+            if (argsBuffer != null) { argsBuffer.Release(); argsBuffer = null; }
         }
 
 
@@ -168,14 +196,7 @@ namespace GpuTrailSystem
 
         void UpdateVertexBuffer()
         {
-            if (_vertexBuffer == null) InitBuffer();
-
-            if (CullingEnable)
-            {
-                gpuTrailCulling.CheckCulling(TargetCamera, gpuTrail, Mathf.Max(_startWidth, _endWidth));
-            }
-
-            var cs = updateVertexCS;
+            var cs = this.computeShader;
             cs.SetFloat(CSParam.Time, Time.time);
 
             cs.SetVector(CSParam.ToCameraDir, isCameraOrthographic ? toOrthographicCameraDir : Vector3.zero);
@@ -186,6 +207,7 @@ namespace GpuTrailSystem
 
             var kernel = cs.FindKernel(CSParam.Kernel_UpdateVertex);
             gpuTrail.SetCSParams(cs, kernel);
+
             if (CullingEnable)
             {
                 gpuTrailCulling.SetComputeShaderParameterEnable(cs, kernel);
@@ -196,7 +218,6 @@ namespace GpuTrailSystem
             }
             cs.SetBuffer(kernel, CSParam.VertexBuffer, _vertexBuffer);
 
-            //ComputeShaderUtility.Dispatch(cs, kernel, gpuTrail.nodeBuffer.count);
             ComputeShaderUtility.Dispatch(cs, kernel, gpuTrail.trailNum);
 
 
@@ -218,6 +239,42 @@ namespace GpuTrailSystem
                 }
             }
 #endif
+        }
+
+        void UpdateArgsBuffer()
+        {
+            GraphicsBuffer.CopyCount(gpuTrailCulling.TrailIndexBuffer, argsBuffer, 4);
+
+            // SinglePassInstanced requires you to manually double the number of instances
+            // https://docs.unity3d.com/Manual/SinglePassInstancing.html
+            if (XRSettings.enabled && XRSettings.stereoRenderingMode == XRSettings.StereoRenderingMode.SinglePassInstanced)
+            {
+                var kernel_argsBufferMultiply = computeShader.FindKernel(CSParam.Kernel_ArgsBufferMultiply);
+                computeShader.SetBuffer(kernel_argsBufferMultiply, CSParam.ArgsBuffer, argsBuffer);
+
+                computeShader.Dispatch(kernel_argsBufferMultiply, 1, 1, 1);
+            }
+
+
+            /*
+            var data = new int[4];
+            argsBuffer.GetData(data);
+            Debug.Log($"{data[0]} {data[1]} {data[2]} {data[3]}");
+            */
+        }
+
+        void ResetArgsBuffer()
+        {
+            var array = new NativeArray<int>(4, Allocator.Temp);
+            
+            array[0] = indexNumPerTrail;
+            array[1] = gpuTrail.trailNum;
+            array[2] = 0;
+            array[3] = 0;
+
+            argsBuffer.SetData(array); // int[4]{ indexNumPerTrail, trailNum, 0, 0}
+
+            array.Dispose();
         }
 
 
@@ -244,32 +301,11 @@ namespace GpuTrailSystem
             SetCommonMaterialParam();
             _material.SetPass(0);
 
-            if (CullingEnable)
-            {
-                if (argsBuffer == null)
-                {
-                    argsBuffer = new GraphicsBuffer(GraphicsBuffer.Target.IndirectArguments, 4, sizeof(uint));
-                    argsBuffer.SetData(new[] { indexNumPerTrail, gpuTrail.trailNum, 0, 0 }); // int[4]{ indexNumPerTrail, trailNum, 0, 0}
-                }
-
-                gpuTrailCulling.SetMaterialParameterEnable(_material);
-                GraphicsBuffer.CopyCount(gpuTrailCulling.TrailIndexBuffer, argsBuffer, 4);
-
-                Graphics.DrawProceduralIndirectNow(MeshTopology.Triangles, argsBuffer);
-            }
-            else
-            {
-                if (gpuTrailCulling != null)
-                {
-                    gpuTrailCulling.SetMaterialParameterDisable(_material);
-                }
-
-                Graphics.DrawProceduralNow(MeshTopology.Triangles, _indexBuffer.count, gpuTrail.trailNum);
-            }
+            Graphics.DrawProceduralIndirectNow(MeshTopology.Triangles, argsBuffer);
         }
 
 
-#region Debug
+        #region Debug
 
         public bool _debugDrawVertexBuf;
 
@@ -292,6 +328,6 @@ namespace GpuTrailSystem
             }
         }
 
-#endregion
+        #endregion
     }
 }

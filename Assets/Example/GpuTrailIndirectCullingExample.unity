@@ -663,7 +663,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b564af979b749d34daa757bd2fc6bcd7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  updateVertexCS: {fileID: 7200000, guid: 365dde5f666348548b6a22b895af03ad, type: 3}
+  computeShader: {fileID: 7200000, guid: 365dde5f666348548b6a22b895af03ad, type: 3}
   _material: {fileID: 2100000, guid: 5f6e1cac686a9714e9048568cfe33abf, type: 2}
   _startWidth: 0.05
   _endWidth: 0.02

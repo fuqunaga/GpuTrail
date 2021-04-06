@@ -7,14 +7,15 @@ namespace GpuTrailSystem
     public interface IGpuTrailCulling
     {
 
-        public void CheckCulling(Camera camera, GpuTrail gpuTrail, float trailWidth);
+        public void UpdateTrailIndexBuffer(Camera camera, GpuTrail gpuTrail, float trailWidth);
 
         public void SetComputeShaderParameterEnable(ComputeShader cs, int kernel);
         public void SetComputeShaderParameterDisable(ComputeShader cs);
 
+        /*
         public void SetMaterialParameterEnable(Material material);
         public void SetMaterialParameterDisable(Material material);
-
+        */
         public GraphicsBuffer TrailIndexBuffer { get; }
     }
 
@@ -56,7 +57,7 @@ namespace GpuTrailSystem
             if (trailIndexBuffer != null) trailIndexBuffer.Release();
         }
 
-        public void CheckCulling(Camera camera, GpuTrail gpuTrail, float trailWidth)
+        public void UpdateTrailIndexBuffer(Camera camera, GpuTrail gpuTrail, float trailWidth)
         {
             if (trailIndexBuffer == null)
             {
@@ -109,6 +110,7 @@ namespace GpuTrailSystem
             cs.DisableKeyword(ShaderParam.Keyword_TrailIdxOn);
         }
 
+        /*
         public void SetMaterialParameterEnable(Material material)
         {
             material.EnableKeyword(ShaderParam.Keyword_TrailIdxOn);
@@ -119,5 +121,6 @@ namespace GpuTrailSystem
         {
             material.DisableKeyword(ShaderParam.Keyword_TrailIdxOn);
         }
+        */
     }
 }

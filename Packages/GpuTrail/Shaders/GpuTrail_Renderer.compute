@@ -1,4 +1,5 @@
-﻿#pragma kernel UpdateVertex NUM_THREAD_X=512
+﻿#pragma kernel UpdateVertex NUM_THREAD_X=128
+#pragma kernel ArgsBufferMultiply NUM_THREAD_X=1
 
 #pragma multi_compile_local __ GPUTRAIL_TRAIL_INDEX_ON
 
@@ -127,4 +128,17 @@ void UpdateVertex(uint3 id : SV_DispatchThreadID)
 			_VertexBuffer[vIdx+1] = v1;
 		}
 	}
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+// ArgsBufferMultipy
+////////////////////////////////////////////////////////////////////////////////
+RWStructuredBuffer<uint> _ArgsBuffer;
+
+[numthreads(1,1,1)]
+void ArgsBufferMultiply()
+{
+	uint v = _ArgsBuffer[1];
+	_ArgsBuffer[1] = v * 2;
 }

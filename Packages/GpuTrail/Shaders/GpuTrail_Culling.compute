@@ -1,6 +1,4 @@
 ﻿#pragma kernel UpdateTrailIdxBuffer NUM_THREAD_X=32
-//#pragma kernel UpdateTrailAppend NUM_THREAD_X=32
-//#pragma kernel CopyVertex NUM_THREAD_X=512
 
 #include "GpuTrailCSInclude.cginc"
 
@@ -46,53 +44,3 @@ void UpdateTrailIdxBuffer (uint3 id : SV_DispatchThreadID)
 		}
 	}
 }
-
-/*
-////////////////////////////////////////////////////////////////////////////////
-// UpdateTrailAppend
-////////////////////////////////////////////////////////////////////////////////
-StructuredBuffer<bool> _IsInView;
-AppendStructuredBuffer<uint> _IsInViewAppend;
-
-[numthreads(NUM_THREAD_X,1,1)]
-void UpdateTrailAppend (uint3 id : SV_DispatchThreadID)
-{
-	uint trailIdx = id.x;
-	if ( trailIdx < _TrailNum )
-	{
-		if ( _IsInView[trailIdx] ) _IsInViewAppend.Append(trailIdx);
-	}
-}
-*/
-
-
-/*
-////////////////////////////////////////////////////////////////////////////////
-// CopyVertex
-////////////////////////////////////////////////////////////////////////////////
-StructuredBuffer<uint> _IsInViewIdxs;
-StructuredBuffer<Vertex> _VertexBufferSrc;
-RWStructuredBuffer<Vertex> _VertexBufferDst;
-
-[numthreads(NUM_THREAD_X,1,1)]
-void CopyVertex (uint3 id : SV_DispatchThreadID)
-{
-	uint vertexIdx = id.x;
-	uint nodeIdx = vertexIdx / 2;
-	uint isInViewIdx = calcTrailIdx(nodeIdx);
-
-	uint numStruct;
-	uint stride;
-	_IsInViewIdxs.GetDimensions(numStruct, stride);
-	if ( isInViewIdx < numStruct )
-	{
-		uint trailIdx = _IsInViewIdxs[isInViewIdx];
-		//uint trailIdx = isInViewIdx;
-		uint nodeIdxInTrail  = nodeIdx % _NodeNumPerTrail;
-		uint nodeIdxSrc = calcNodeIdx(trailIdx, nodeIdxInTrail);
-		uint vertexIdxSrc = nodeIdxSrc * 2 + vertexIdx % 2;
-
-		_VertexBufferDst[vertexIdx] = _VertexBufferSrc[vertexIdxSrc];
-	}
-}
-*/
