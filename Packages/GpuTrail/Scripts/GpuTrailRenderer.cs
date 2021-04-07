@@ -65,6 +65,7 @@ namespace GpuTrailSystem
 
         [Header("Debug")]
         public bool cullingEnable = true;
+        public Vector3 cullingCameraLocalPosOffset;
         public bool updateVertexEnable = true;
         public bool renderingEnable = true;
 
@@ -102,7 +103,7 @@ namespace GpuTrailSystem
             if (CullingEnable)
             {
                 float width = Mathf.Max(startWidth, endWidth);
-                gpuTrailCulling.UpdateTrailIndexBuffer(TargetCamera, gpuTrail, width);
+                gpuTrailCulling.UpdateTrailIndexBuffer(TargetCamera, gpuTrail, width, cullingCameraLocalPosOffset);
 
                 UpdateArgsBuffer();
             }

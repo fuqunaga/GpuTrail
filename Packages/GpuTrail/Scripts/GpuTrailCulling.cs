@@ -4,29 +4,15 @@ using UnityEngine;
 
 namespace GpuTrailSystem
 {
-    public interface IGpuTrailCulling
-    {
-
-        public void UpdateTrailIndexBuffer(Camera camera, GpuTrail gpuTrail, float trailWidth);
-
-        public void SetComputeShaderParameterEnable(ComputeShader cs, int kernel);
-        public void SetComputeShaderParameterDisable(ComputeShader cs);
-
-        public GraphicsBuffer TrailIndexBuffer { get; }
-    }
-
     public class GpuTrailCulling : MonoBehaviour, IGpuTrailCulling
     {
-        public static class ShaderParam
+        public static class CSParam
         {
-            // for ComputeShader
+            public static readonly string Keyword_TrailIdxOn = "GPUTRAIL_TRAIL_INDEX_ON";
             public static readonly string Kernel_UpdateTrailIdxBuffer = "UpdateTrailIdxBuffer";
             public static readonly int CameraFrustumNormals = Shader.PropertyToID("_CameraFrustumNormals");
             public static readonly int TrailWidth = Shader.PropertyToID("_TrailWidth");
             public static readonly int CameraPos = Shader.PropertyToID("_CameraPos");
-
-            // for ComputeShader and Shader
-            public static readonly string Keyword_TrailIdxOn = "GPUTRAIL_TRAIL_INDEX_ON";
             public static readonly int TrailIndexBuffer = Shader.PropertyToID("_TrailIndexBuffer");
         }
 
@@ -53,30 +39,36 @@ namespace GpuTrailSystem
             if (trailIndexBuffer != null) trailIndexBuffer.Release();
         }
 
-        public void UpdateTrailIndexBuffer(Camera camera, GpuTrail gpuTrail, float trailWidth)
+        public void UpdateTrailIndexBuffer(Camera camera, GpuTrail gpuTrail, float trailWidth, Vector3? cameraPosLocalOffset)
         {
             if (trailIndexBuffer == null)
             {
                 InitBuffer(gpuTrail.trailNum);
             }
 
+            var cameraTrans = camera.transform;
+            var cameraPos = cameraTrans.position;
+            if (cameraPosLocalOffset.HasValue)
+            {
+                cameraPos += cameraTrans.rotation * cameraPosLocalOffset.Value;
+            }
+
             var planes = GeometryUtility.CalculateFrustumPlanes(camera);
             var normals = planes.Take(4).Select(p => p.normal).ToList();
-            //planes.Take(4).ToList().ForEach(plane => Debug.DrawRay(camera.transform.position, plane.normal * 10f));
             var normalsFloat = Enumerable.Range(0, 3).SelectMany(i => normals.Select(n => n[i])).ToArray(); // row major -> column major
-            cullingCS.SetFloats(ShaderParam.CameraFrustumNormals, normalsFloat);
+
+
 
             trailIndexBuffer.SetCounterValue(0);
 
-            var kernel = cullingCS.FindKernel(ShaderParam.Kernel_UpdateTrailIdxBuffer);
+            var kernel = cullingCS.FindKernel(CSParam.Kernel_UpdateTrailIdxBuffer);
             gpuTrail.SetCSParams(cullingCS, kernel);
-            cullingCS.SetFloat(ShaderParam.TrailWidth, trailWidth);
-            cullingCS.SetVector(ShaderParam.CameraPos, camera.transform.position);
-            //cullingCS.SetBuffer(kernel, "_IsInView", _trailIsInViews);
-            cullingCS.SetBuffer(kernel, ShaderParam.TrailIndexBuffer, trailIndexBuffer);
+            cullingCS.SetFloat(CSParam.TrailWidth, trailWidth);
+            cullingCS.SetFloats(CSParam.CameraFrustumNormals, normalsFloat);
+            cullingCS.SetVector(CSParam.CameraPos, cameraPos);
+            cullingCS.SetBuffer(kernel, CSParam.TrailIndexBuffer, trailIndexBuffer);
 
             ComputeShaderUtility.Dispatch(cullingCS, kernel, gpuTrail.trailNum);
-
 
 #if true
         }
@@ -97,13 +89,13 @@ namespace GpuTrailSystem
 
         public void SetComputeShaderParameterEnable(ComputeShader cs, int kernel)
         {
-            cs.EnableKeyword(ShaderParam.Keyword_TrailIdxOn);
-            cs.SetBuffer(kernel, ShaderParam.TrailIndexBuffer, trailIndexBuffer);
+            cs.EnableKeyword(CSParam.Keyword_TrailIdxOn);
+            cs.SetBuffer(kernel, CSParam.TrailIndexBuffer, trailIndexBuffer);
         }
 
         public void SetComputeShaderParameterDisable(ComputeShader cs)
         {
-            cs.DisableKeyword(ShaderParam.Keyword_TrailIdxOn);
+            cs.DisableKeyword(CSParam.Keyword_TrailIdxOn);
         }
     }
 }
