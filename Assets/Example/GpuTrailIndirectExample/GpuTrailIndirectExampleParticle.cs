@@ -1,6 +1,5 @@
-﻿using UnityEngine;
-using System.Runtime.InteropServices;
-using Unity.Collections;
+﻿using System.Runtime.InteropServices;
+using UnityEngine;
 
 namespace GpuTrailSystem.Example
 {
@@ -14,62 +13,62 @@ namespace GpuTrailSystem.Example
             public Vector3 pos;
         }
 
-        GraphicsBuffer _particleBuffer;
+        GraphicsBuffer particleBuffer;
 
 
-        public ComputeShader _particleCS;
-        public int _particleNum = 1000;
-        public float _startSpeed = 1f;
-        public float _forceRate = 0.01f;
-        public float _damping = 0.99f;
-        public float _gravity = 0.01f;
-        public Vector3 _bounds = Vector3.one * 10f;
+        public ComputeShader particleCS;
+        public int particleNum = 1000;
+        public float startSpeed = 1f;
+        public float forceRate = 0.01f;
+        public float damping = 0.99f;
+        public float gravity = 0.01f;
+        public Vector3 bounds = Vector3.one * 10f;
 
         public void Init()
         {
-            _particleBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, _particleNum, Marshal.SizeOf<Particle>());
+            particleBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, particleNum, Marshal.SizeOf<Particle>());
 
-            var particles = new Particle[_particleBuffer.count];
+            var particles = new Particle[particleBuffer.count];
             for (var i = 0; i < particles.Length; ++i)
             {
                 particles[i] = new Particle
                 {
-                    pos = Random.insideUnitSphere * _bounds.y * 0.1f,
-                    velocity = Vector3.Scale(Random.insideUnitSphere, Vector3.up * _startSpeed)
+                    pos = Random.insideUnitSphere * bounds.y * 0.1f,
+                    velocity = Vector3.Scale(Random.insideUnitSphere, Vector3.up * startSpeed)
                 };
             }
 
-            _particleBuffer.SetData(particles);
+            particleBuffer.SetData(particles);
         }
 
         public void UpdateInputBuffer(GraphicsBuffer inputBuffer)
         {
-            _particleCS.SetFloat("_Time", Time.time);
-            _particleCS.SetFloat("_ForceRate", _forceRate);
-            _particleCS.SetFloat("_Damping", _damping);
-            _particleCS.SetFloat("_Gravity", _gravity);
-            _particleCS.SetFloats("_Bounds", _bounds.x, _bounds.y, _bounds.z);
+            particleCS.SetFloat("_Time", Time.time);
+            particleCS.SetFloat("_ForceRate", forceRate);
+            particleCS.SetFloat("_Damping", damping);
+            particleCS.SetFloat("_Gravity", gravity);
+            particleCS.SetFloats("_Bounds", bounds.x, bounds.y, bounds.z);
 
 
-            var kernel = _particleCS.FindKernel("CSMain");
-            _particleCS.SetBuffer(kernel, "_ParticleBuffer", _particleBuffer);
-            _particleCS.SetBuffer(kernel, "_InputBuffer_Pos", inputBuffer);
+            var kernel = particleCS.FindKernel("CSMain");
+            particleCS.SetBuffer(kernel, "_ParticleBuffer", particleBuffer);
+            particleCS.SetBuffer(kernel, "_InputBuffer_Pos", inputBuffer);
 
-            ComputeShaderUtility.Dispatch(_particleCS, kernel, _particleBuffer.count);
+            ComputeShaderUtility.Dispatch(particleCS, kernel, particleBuffer.count);
         }
 
         public void ReleaseBuffer()
         {
-            if (_particleBuffer != null) _particleBuffer.Release();
+            if (particleBuffer != null) particleBuffer.Release();
         }
 
 
         Particle[] particles;
         public void DrawGizmos()
         {
-            if (particles == null) particles = new Particle[_particleBuffer.count];
+            if (particles == null) particles = new Particle[particleBuffer.count];
 
-            _particleBuffer.GetData(particles);
+            particleBuffer.GetData(particles);
 
             const float radius = 0.1f;
             Gizmos.color = Color.red;

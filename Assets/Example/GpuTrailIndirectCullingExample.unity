@@ -623,13 +623,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   particle:
-    _particleCS: {fileID: 7200000, guid: 16daaa733f6a1194394beb0d2f0d6fb9, type: 3}
-    _particleNum: 10000
-    _startSpeed: 1
-    _forceRate: 0.15
-    _damping: 0.95
-    _gravity: 0.001
-    _bounds: {x: 100, y: 50, z: 100}
+    particleCS: {fileID: 7200000, guid: 16daaa733f6a1194394beb0d2f0d6fb9, type: 3}
+    particleNum: 10000
+    startSpeed: 1
+    forceRate: 0.15
+    damping: 0.95
+    gravity: 0.001
+    bounds: {x: 100, y: 50, z: 100}
   particleGizmosEnable: 0
   gpuTrail:
     appendNodeCS: {fileID: 7200000, guid: d1a2d7e60a9bbd54e8a06cea0893efff, type: 3}
@@ -664,9 +664,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   computeShader: {fileID: 7200000, guid: 365dde5f666348548b6a22b895af03ad, type: 3}
-  _material: {fileID: 2100000, guid: 5f6e1cac686a9714e9048568cfe33abf, type: 2}
-  _startWidth: 0.05
-  _endWidth: 0.02
+  material: {fileID: 2100000, guid: 5f6e1cac686a9714e9048568cfe33abf, type: 2}
+  startWidth: 0.05
+  endWidth: 0.02
   cullingEnable: 1
   updateVertexEnable: 1
   renderingEnable: 1

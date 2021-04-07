@@ -12,10 +12,6 @@ namespace GpuTrailSystem
         public void SetComputeShaderParameterEnable(ComputeShader cs, int kernel);
         public void SetComputeShaderParameterDisable(ComputeShader cs);
 
-        /*
-        public void SetMaterialParameterEnable(Material material);
-        public void SetMaterialParameterDisable(Material material);
-        */
         public GraphicsBuffer TrailIndexBuffer { get; }
     }
 
@@ -109,18 +105,5 @@ namespace GpuTrailSystem
         {
             cs.DisableKeyword(ShaderParam.Keyword_TrailIdxOn);
         }
-
-        /*
-        public void SetMaterialParameterEnable(Material material)
-        {
-            material.EnableKeyword(ShaderParam.Keyword_TrailIdxOn);
-            material.SetBuffer(ShaderParam.TrailIndexBuffer, trailIndexBuffer);
-        }
-
-        public void SetMaterialParameterDisable(Material material)
-        {
-            material.DisableKeyword(ShaderParam.Keyword_TrailIdxOn);
-        }
-        */
     }
 }

@@ -9,7 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 439476}
-  - component: {fileID: 2343243901435955503}
+  - component: {fileID: 7566415129091979739}
   - component: {fileID: 4269517395967901056}
   m_Layer: 0
   m_Name: GpuTrail
@@ -32,7 +32,7 @@ Transform:
   m_Father: {fileID: 439478}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &2343243901435955503
+--- !u!114 &7566415129091979739
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -41,16 +41,15 @@ MonoBehaviour:
   m_GameObject: {fileID: 139476}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6af463c098fe7e445addb01c1c7e5c49, type: 3}
+  m_Script: {fileID: 11500000, guid: f60979323f34aae40ad138b75ec645be, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   gpuTrail:
+    appendNodeCS: {fileID: 7200000, guid: d1a2d7e60a9bbd54e8a06cea0893efff, type: 3}
     trailNum: 1
     life: 10
     inputPerSec: 60
     minNodeDistance: 0.1
-    appendNodeCS: {fileID: 7200000, guid: d1a2d7e60a9bbd54e8a06cea0893efff, type: 3}
-  _cs: {fileID: 7200000, guid: d1a2d7e60a9bbd54e8a06cea0893efff, type: 3}
   _debugDrawLogPoint: 0
 --- !u!114 &4269517395967901056
 MonoBehaviour:
@@ -64,10 +63,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b564af979b749d34daa757bd2fc6bcd7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  updateVertexCS: {fileID: 7200000, guid: 365dde5f666348548b6a22b895af03ad, type: 3}
-  _material: {fileID: 2100000, guid: 5f6e1cac686a9714e9048568cfe33abf, type: 2}
-  _startWidth: 0.1
-  _endWidth: 0.1
+  computeShader: {fileID: 7200000, guid: 365dde5f666348548b6a22b895af03ad, type: 3}
+  material: {fileID: 2100000, guid: 5f6e1cac686a9714e9048568cfe33abf, type: 2}
+  startWidth: 0.1
+  endWidth: 0.1
+  cullingEnable: 1
+  updateVertexEnable: 1
+  renderingEnable: 1
   _debugDrawVertexBuf: 0
 --- !u!1 &139478
 GameObject:

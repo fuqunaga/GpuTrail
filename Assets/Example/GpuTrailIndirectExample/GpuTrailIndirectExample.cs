@@ -1,37 +1,29 @@
-﻿using UnityEngine;
-
-namespace GpuTrailSystem.Example
+﻿namespace GpuTrailSystem.Example
 {
-    public class GpuTrailIndirectExample : MonoBehaviour, IGpuTrailHolder
+    public class GpuTrailIndirectExample : GpuTrailAppendNode
     {
         public GpuTrailIndirectExampleParticle particle;
         public bool particleGizmosEnable;
 
-        [SerializeField]
-        protected GpuTrail gpuTrail;
-        
-
-        public GpuTrail GpuTrail => gpuTrail;
-
-        void Start()
+        protected override void Start()
         {
             particle.Init();
-            gpuTrail.trailNum = particle._particleNum;
+            gpuTrail.trailNum = particle.particleNum;
             gpuTrail.Init();
         }
+        protected override void OnDestroy()
+        {
+            base.OnDestroy();
+            particle.ReleaseBuffer();
+        }
 
 
-        void Update()
+        protected override bool UpdateInputBuffer()
         {
             particle.UpdateInputBuffer(gpuTrail.inputBuffer_Pos);
-            gpuTrail.DispatchAppendNode();
+            return true;
         }
 
-        void OnDestroy()
-        {
-            particle.ReleaseBuffer();
-            gpuTrail.Dispose();
-        }
 
         void OnDrawGizmosSelected()
         {
