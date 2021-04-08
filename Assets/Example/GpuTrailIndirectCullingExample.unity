@@ -622,21 +622,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 665b0a84258e7534787071e45a68c201, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  gpuTrail:
+    appendNodeCS: {fileID: 7200000, guid: d1a2d7e60a9bbd54e8a06cea0893efff, type: 3}
+    trailNum: 1
+    life: 7
+    inputPerSec: 60
+    minNodeDistance: 0.1
   particle:
     particleCS: {fileID: 7200000, guid: 16daaa733f6a1194394beb0d2f0d6fb9, type: 3}
-    particleNum: 10000
+    particleNum: 1
     startSpeed: 1
     forceRate: 0.15
     damping: 0.95
     gravity: 0.001
     bounds: {x: 100, y: 50, z: 100}
   particleGizmosEnable: 0
-  gpuTrail:
-    appendNodeCS: {fileID: 7200000, guid: d1a2d7e60a9bbd54e8a06cea0893efff, type: 3}
-    trailNum: 10000
-    life: 10
-    inputPerSec: 60
-    minNodeDistance: 0.1
 --- !u!4 &1927869134
 Transform:
   m_ObjectHideFlags: 0
@@ -667,10 +667,11 @@ MonoBehaviour:
   material: {fileID: 2100000, guid: 5f6e1cac686a9714e9048568cfe33abf, type: 2}
   startWidth: 0.05
   endWidth: 0.02
+  lodList: []
   cullingEnable: 1
+  cullingCameraLocalPosOffset: {x: 0, y: 0, z: 0}
   updateVertexEnable: 1
   renderingEnable: 1
-  _debugDrawVertexBuf: 0
 --- !u!114 &1927869136
 MonoBehaviour:
   m_ObjectHideFlags: 0

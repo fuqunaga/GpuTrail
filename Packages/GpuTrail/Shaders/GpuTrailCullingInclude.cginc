@@ -2,7 +2,7 @@
 #define GPUTRAIL_CULLING_INCLUDED
 
 // Put the following #pragma line in your .compute file and call [Shader/ComputeShader].EnableKeyword() on the C# side to make it work
-// #pragma multi_compile_local __ GPUTRAIL_TRAIL_INDEX_ON
+// #pragma multi_compile __ GPUTRAIL_TRAIL_INDEX_ON
 
 #ifdef GPUTRAIL_TRAIL_INDEX_ON
 

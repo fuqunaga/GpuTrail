@@ -27,10 +27,10 @@ SubShader {
 			float2 uv  : TEXCOORD;
 		};
 
-		vs_out vert (uint id : SV_VertexID, uint iId : SV_InstanceID)
+		vs_out vert (uint vId : SV_VertexID, uint iId : SV_InstanceID)
 		{
 			vs_out Out;
-			Vertex vtx = GetVertex(id, iId);
+			Vertex vtx = GetVertex(vId, iId);
 
 			Out.pos = UnityObjectToClipPos(float4(vtx.pos, 1.0));
 			Out.uv = vtx.uv;

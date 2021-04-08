@@ -4,7 +4,8 @@ namespace GpuTrailSystem
 {
     public abstract class GpuTrailAppendNode : MonoBehaviour, IGpuTrailHolder
     {
-        public GpuTrail gpuTrail;
+        [SerializeField]
+        protected GpuTrail gpuTrail;
         public GpuTrail GpuTrail => gpuTrail;
 
 

@@ -6,6 +6,9 @@ using UnityEngine;
 
 namespace GpuTrailSystem
 {
+    /// <summary>
+    /// C# side corresponding to GpuTrailCSInclude.cginc
+    /// </summary>
     [Serializable]
     public class GpuTrail : IDisposable
     {
@@ -33,7 +36,7 @@ namespace GpuTrailSystem
 
 
         public int nodeNumPerTrail { get; protected set; }
-        public int nodeBufferSize => trailNum * nodeNumPerTrail;
+        public int nodeNumTotal => trailNum * nodeNumPerTrail;
 
         public GraphicsBuffer trailBuffer { get; protected set; }
 
@@ -69,8 +72,8 @@ namespace GpuTrailSystem
             trailBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, trailNum, Marshal.SizeOf<Trail>());
             trailBuffer.SetData(Enumerable.Repeat(default(Trail), trailNum).ToArray());
 
-            nodeBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, nodeBufferSize, Marshal.SizeOf<Node>());
-            nodeBuffer.SetData(Enumerable.Repeat(default(Node), nodeBufferSize).ToArray());
+            nodeBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, nodeNumTotal, Marshal.SizeOf<Node>());
+            nodeBuffer.SetData(Enumerable.Repeat(default(Node), nodeNumTotal).ToArray());
 
 
             inputBuffer_Pos = new GraphicsBuffer(GraphicsBuffer.Target.Structured, trailNum, Marshal.SizeOf<Vector3>());

@@ -1,9 +1,14 @@
+using System;
 using System.Linq;
 using UnityEngine;
 
 
 namespace GpuTrailSystem
 {
+    /// <summary>
+    /// C# side corresponding to GpuTrailCullingInclude.cginc
+    /// </summary>
+    [Serializable]
     public class GpuTrailCulling : MonoBehaviour, IGpuTrailCulling
     {
         public static class CSParam
@@ -29,17 +34,17 @@ namespace GpuTrailSystem
         }
 
 
-        public void InitBuffer(int trailNum)
+        void InitBuffer(int trailNum)
         {
             trailIndexBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Append, trailNum, sizeof(uint));
         }
 
-        public void ReleaseBuffer()
+        void ReleaseBuffer()
         {
             if (trailIndexBuffer != null) trailIndexBuffer.Release();
         }
 
-        public void UpdateTrailIndexBuffer(Camera camera, GpuTrail gpuTrail, float trailWidth, Vector3? cameraPosLocalOffset)
+        public virtual void UpdateTrailIndexBuffer(Camera camera, GpuTrail gpuTrail, float trailWidth, Vector3? cameraPosLocalOffset)
         {
             if (trailIndexBuffer == null)
             {
@@ -94,6 +99,11 @@ namespace GpuTrailSystem
         }
 
         public void SetComputeShaderParameterDisable(ComputeShader cs)
+        {
+            cs.DisableKeyword(CSParam.Keyword_TrailIdxOn);
+        }
+
+        public static void SetComputeShaderParameterDisableDefault(ComputeShader cs)
         {
             cs.DisableKeyword(CSParam.Keyword_TrailIdxOn);
         }

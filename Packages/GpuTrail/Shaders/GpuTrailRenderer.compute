@@ -7,7 +7,7 @@
 #include "GpuTrailCSInclude.cginc"
 
 ////////////////////////////////////////////////////////////////////////////////
-// CreateWidth
+// UpdateVertex
 ////////////////////////////////////////////////////////////////////////////////
 StructuredBuffer<Trail> _TrailBuffer;
 StructuredBuffer<Node> _NodeBuffer;
@@ -29,16 +29,20 @@ inline float3 calcToCameraDir(float3 pos)
 }
 
 
-uint calcPrevIdxInTrail(uint idx)
+inline uint minusIdxInTrail(uint idx, uint minus)
 {
-	return (idx + _NodeNumPerTrail-1) % _NodeNumPerTrail;
+	return (idx + _NodeNumPerTrail-minus) % _NodeNumPerTrail;
 }
-uint calcNextIdxInTrail(uint idx)
+inline uint calcPrevIdxInTrail(uint idx)
+{
+	return minusIdxInTrail(idx, 1);
+}
+inline uint calcNextIdxInTrail(uint idx)
 {
 	return (idx + 1) % _NodeNumPerTrail;
 }
 
-uint calcNodeIdxFromInTrail(uint trailIdx, uint idxInTrail)
+inline uint calcNodeIdxFromInTrail(uint trailIdx, uint idxInTrail)
 {
 	return trailIdx * _NodeNumPerTrail + idxInTrail;
 }
@@ -77,6 +81,8 @@ float3 calcNodeDir(uint trailIdx, uint nodeIdxInTrail, uint totalInputNum)
 
 #include "GpuTrailCullingInclude.cginc"
 
+uint _LodNodeStep;
+
 [numthreads(NUM_THREAD_X,1,1)]
 void UpdateVertex(uint3 id : SV_DispatchThreadID)
 {
@@ -88,11 +94,14 @@ void UpdateVertex(uint3 id : SV_DispatchThreadID)
 		uint totalInputNum = trail.totalInputNum;
 		uint startNodeIdxInTrail = (totalInputNum <= _NodeNumPerTrail) ? 0 : calcNextIdxInTrail(totalInputNum-1);
 		uint startNodeIdx = calcNodeIdxFromInTrail(trailIdxBufferIdx, 0);
+		uint vertexIdx = startNodeIdx / _LodNodeStep * 2;
 
 		Vertex v0 = GetDefaultVertex();
 		Vertex v1 = GetDefaultVertex();
 
-		for(uint i = 0; i<_NodeNumPerTrail; ++i)
+		// 最新のNode（idx==totalInputNum-1）が処理されるようにiの初期値を調整
+		uint startI = (totalInputNum-1) % _LodNodeStep; 
+		for(uint i = startI; i<_NodeNumPerTrail; i += _LodNodeStep)
 		{
 			uint nodeIdxInTrail = (startNodeIdxInTrail + i) % _NodeNumPerTrail;
 			Node node = getNode(trailIdx, nodeIdxInTrail, totalInputNum);
@@ -120,12 +129,12 @@ void UpdateVertex(uint3 id : SV_DispatchThreadID)
 				v1.color = node.color;
 			}
 
-			//v0.pos = float3(trailIdx,nodeIdxInTrail, totalInputNum);
+			//v0.pos = float3(trailIdx, nodeIdxInTrail, totalInputNum);
 			//v1.pos = float3(4,5,6);
 
-			uint vIdx = (startNodeIdx + i) * 2;
-			_VertexBuffer[vIdx] = v0;
-			_VertexBuffer[vIdx+1] = v1;
+			_VertexBuffer[vertexIdx] = v0;
+			_VertexBuffer[vertexIdx+1] = v1;
+			vertexIdx += 2;
 		}
 	}
 }
