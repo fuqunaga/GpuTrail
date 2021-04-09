@@ -4,7 +4,7 @@ using UnityEngine.Rendering;
 
 namespace GpuTrailSystem
 {
-    [RequireComponent(typeof(IGpuTrailHolder))]
+    [RequireComponent(typeof(IGpuTrailAppendNode))]
     public class GpuTrailRenderer : MonoBehaviour
     {
         public ComputeShader computeShader;
@@ -15,8 +15,8 @@ namespace GpuTrailSystem
         protected IGpuTrailCulling gpuTrailCulling;
         protected Camera currentCamera;
 
-        IGpuTrailHolder gpuTrailHolder;
-        GpuTrail gpuTrail => gpuTrailHolder.GpuTrail;
+        IGpuTrailAppendNode gpuTrailAppendNode;
+        GpuTrail gpuTrail => gpuTrailAppendNode.GpuTrail;
 
         [SerializeField] // for debug
         protected List<GpuTrailRenderer_Lod> lodList = new List<GpuTrailRenderer_Lod>();
@@ -45,9 +45,9 @@ namespace GpuTrailSystem
 
         protected virtual void Start()
         {
-            if (gpuTrailHolder == null)
+            if (gpuTrailAppendNode == null)
             {
-                gpuTrailHolder = GetComponent<IGpuTrailHolder>();
+                gpuTrailAppendNode = GetComponent<IGpuTrailAppendNode>();
             }
 
             if (gpuTrailCulling == null)
@@ -64,6 +64,8 @@ namespace GpuTrailSystem
 
         protected virtual void LateUpdate()
         {
+            gpuTrailAppendNode.AppendNode();
+
             if (gpuTrailCulling != null)
             {
                 if (cullingEnable)

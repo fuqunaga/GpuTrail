@@ -46,11 +46,13 @@ namespace GpuTrailSystem.Example
 
         #region Debug
 
-        public bool _debugDrawLogPoint;
+        public bool debugDrawLogPoint;
 
-        public void OnDrawGizmosSelected()
+        public override void OnDrawGizmosSelected()
         {
-            if (_debugDrawLogPoint)
+            base.OnDrawGizmosSelected();
+
+            if (debugDrawLogPoint)
             {
                 Gizmos.color = Color.magenta;
                 foreach (var p in posLog)

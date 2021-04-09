@@ -3,6 +3,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using Unity.Collections;
 using UnityEngine;
+using UnityEngine.Assertions;
 using UnityEngine.XR;
 
 namespace GpuTrailSystem
@@ -67,10 +68,13 @@ namespace GpuTrailSystem
 
         public void InitBufferIfNeed()
         {
-            if ( (vertexBuffer != null) && (vertexBuffer.count == vertexBufferSize))
+            if ((vertexBuffer != null) && (vertexBuffer.count == vertexBufferSize))
             {
                 return;
             }
+
+            Assert.IsTrue(0 < lodNodeStep && lodNodeStep < gpuTrail.nodeNumPerTrail, $"Invalid lodNodeStep[{lodNodeStep}]");
+
 
             ReleaseBuffers();
 
@@ -146,11 +150,18 @@ namespace GpuTrailSystem
 
 
 #if false
+            var trails = new Trail[gpuTrail.trailBuffer.count];
+            gpuTrail.trailBuffer.GetData(trails);
+            var lastNodeIdx = trails[0].totalInputNum % gpuTrail.nodeNumPerTrail;
+
             var nodes = new Node[gpuTrail.nodeBuffer.count];
             gpuTrail.nodeBuffer.GetData(nodes);
             //nodes = nodes.Take(100).ToArray();
-            nodes = nodes.ToArray();
-
+            var idxAndNodes = Enumerable.Range(0, nodes.Length)
+                .Zip(nodes, (i, node) => new { i, node })
+                .OrderByDescending(iNode => iNode.node.time)
+                .ToList();
+                
             var vtxs = new Vertex[vertexBuffer.count];
             vertexBuffer.GetData(vtxs);
             //vtxs = vtxs.Take(100).ToArray();
@@ -227,17 +238,34 @@ namespace GpuTrailSystem
         {
             if (debugDrawVertexBuf)
             {
-                Gizmos.color = Color.yellow;
+                var defaultColor = Color.yellow;
+                Gizmos.color = defaultColor;
+
                 var data = new Vertex[vertexBuffer.count];
                 vertexBuffer.GetData(data);
 
                 var num = vertexBuffer.count / 2;
                 for (var i = 0; i < num; ++i)
                 {
+                    Color? tmpColor = null;
+                    if (i == 0) { tmpColor = Color.red; }
+                    if (i == num - 1) { tmpColor = Color.green; }
+
+                    if ( tmpColor.HasValue )
+                    {
+                        Gizmos.color = tmpColor.Value;
+
+                    }
+
                     var v0 = data[2 * i];
                     var v1 = data[2 * i + 1];
 
                     Gizmos.DrawLine(v0.pos, v1.pos);
+
+                    if ( tmpColor.HasValue)
+                    {
+                        Gizmos.color = defaultColor;
+                    }
                 }
             }
         }

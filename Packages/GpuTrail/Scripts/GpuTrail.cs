@@ -130,5 +130,32 @@ namespace GpuTrailSystem
             nodes = nodes.Take(100).ToArray();
             */
         }
+
+
+        #region Debug
+
+        public void DrawGizmosInputPos(float radius)
+        {
+            var datas = new Vector3[inputBuffer_Pos.count];
+            inputBuffer_Pos.GetData(datas);
+
+            for(var i=0; i<datas.Length; ++i)
+            {
+                Gizmos.DrawWireSphere(datas[i], radius);
+            }
+        }
+
+        public void DrawGizmosNodePos(float radius)
+        {
+            var datas = new Node[nodeBuffer.count];
+            nodeBuffer.GetData(datas);
+
+            for (var i = 0; i < datas.Length; ++i)
+            {
+                Gizmos.DrawWireSphere(datas[i].pos, radius);
+            }
+        }
+
+        #endregion
     }
 }

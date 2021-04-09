@@ -630,7 +630,7 @@ MonoBehaviour:
     minNodeDistance: 0.1
   particle:
     particleCS: {fileID: 7200000, guid: 16daaa733f6a1194394beb0d2f0d6fb9, type: 3}
-    particleNum: 1
+    particleNum: 10000
     startSpeed: 1
     forceRate: 0.15
     damping: 0.95

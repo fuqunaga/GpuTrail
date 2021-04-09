@@ -25,8 +25,10 @@
         }
 
 
-        void OnDrawGizmosSelected()
+        public override void OnDrawGizmosSelected()
         {
+            base.OnDrawGizmosSelected();
+
             if (particleGizmosEnable)
             {
                 particle.DrawGizmos();

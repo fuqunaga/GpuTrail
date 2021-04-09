@@ -1,4 +1,4 @@
-﻿#pragma kernel UpdateVertex NUM_THREAD_X=128
+#pragma kernel UpdateVertex NUM_THREAD_X=128
 #pragma kernel ArgsBufferMultiply NUM_THREAD_X=1
 
 #pragma multi_compile_local __ GPUTRAIL_TRAIL_INDEX_ON
@@ -69,7 +69,7 @@ float3 calcNodeDir(uint trailIdx, uint nodeIdxInTrail, uint totalInputNum)
 		dirPrev = normalize(pos - getNode(trailIdx, prevIdxInTrail, totalInputNum).pos);
 	}
 
-	bool nextEnable = nodeIdxInTrail!= inputIdxInTrail;
+	bool nextEnable = nodeIdxInTrail != inputIdxInTrail;
 	if ( nextEnable )
 	{
 		uint nextIdxInTrail = calcNextIdxInTrail(nodeIdxInTrail);
@@ -92,24 +92,25 @@ void UpdateVertex(uint3 id : SV_DispatchThreadID)
 	{
 		Trail trail = _TrailBuffer[trailIdx];
 		uint totalInputNum = trail.totalInputNum;
-		uint startNodeIdxInTrail = (totalInputNum <= _NodeNumPerTrail) ? 0 : calcNextIdxInTrail(totalInputNum-1);
-		uint startNodeIdx = calcNodeIdxFromInTrail(trailIdxBufferIdx, 0);
-		uint vertexIdx = startNodeIdx / _LodNodeStep * 2;
+
+		////////////////////////////////////////////////////////////
+		// Sequence newest node > oldest node
+		////////////////////////////////////////////////////////////
+		uint endNodeIdxInTrail = (totalInputNum - 1) % _NodeNumPerTrail;
+		uint vertexIdx = (((trailIdxBufferIdx+1) * (_NodeNumPerTrail / _LodNodeStep))-1) * 2;
 
 		Vertex v0 = GetDefaultVertex();
 		Vertex v1 = GetDefaultVertex();
-
-		// 最新のNode（idx==totalInputNum-1）が処理されるようにiの初期値を調整
-		uint startI = (totalInputNum-1) % _LodNodeStep; 
-		for(uint i = startI; i<_NodeNumPerTrail; i += _LodNodeStep)
+		uint count = _NodeNumPerTrail / _LodNodeStep;
+		for(uint i = 0; i<count; ++i)
 		{
-			uint nodeIdxInTrail = (startNodeIdxInTrail + i) % _NodeNumPerTrail;
-			Node node = getNode(trailIdx, nodeIdxInTrail, totalInputNum);
+			uint nodeIdxInTrail = minusIdxInTrail(endNodeIdxInTrail, i * _LodNodeStep);
 
 			// Calc v0,v1
 			// Use previous v0,v1 if node has not been created yet.
-			//if (node.time > 0)
+			if (nodeIdxInTrail < totalInputNum)
 			{
+				Node node = getNode(trailIdx, nodeIdxInTrail, totalInputNum);
 				//node.time = max(node.time, 0);
 				float life = min(_Life, _Time - trail.startTime);
 				float rate = life <= 0 ? 1 : max(0, 1 - ((_Time - node.time) / life));
@@ -134,7 +135,7 @@ void UpdateVertex(uint3 id : SV_DispatchThreadID)
 
 			_VertexBuffer[vertexIdx] = v0;
 			_VertexBuffer[vertexIdx+1] = v1;
-			vertexIdx += 2;
+			vertexIdx -= 2;
 		}
 	}
 }

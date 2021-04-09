@@ -1,7 +1,8 @@
 namespace GpuTrailSystem
 {
-    public interface IGpuTrailHolder
+    public interface IGpuTrailAppendNode
     {
         public GpuTrail GpuTrail { get; }
+        public void AppendNode();
     }
 }
