@@ -70,16 +70,11 @@ namespace GpuTrailSystem
         }
 
 
-        public void InitBufferIfNeed()
+        protected void InitBufferIfNeed()
         {
             if ((vertexBuffer != null) && (vertexBuffer.count == vertexBufferSize))
             {
                 return;
-            }
-
-            if (gpuTrail == null || !(0 < lodNodeStep && lodNodeStep < gpuTrail.nodeNumPerTrail))
-            {
-                Debug.Log("hoge");
             }
 
             Assert.IsTrue(0 < lodNodeStep && lodNodeStep < gpuTrail.nodeNumPerTrail, $"Invalid lodNodeStep[{lodNodeStep}]");
@@ -111,7 +106,7 @@ namespace GpuTrailSystem
             ResetArgsBuffer();
         }
 
-        public void ReleaseBuffers()
+        protected void ReleaseBuffers()
         {
             if (vertexBuffer != null) { vertexBuffer.Release(); vertexBuffer = null; }
             if (indexBuffer != null) { indexBuffer.Release(); indexBuffer = null; }
@@ -119,7 +114,7 @@ namespace GpuTrailSystem
         }
 
 
-        public void UpdateVertexBuffer(IGpuTrailCulling gpuTrailCulling, Camera camera, float startWidth, float endWidth, bool cullingEnable)
+        public void UpdateVertexBuffer(Camera camera, float startWidth, float endWidth, GraphicsBuffer trailIndexBuffer)
         {
             InitBufferIfNeed();
 
@@ -140,22 +135,18 @@ namespace GpuTrailSystem
 
             var kernel = computeShader.FindKernel(CSParam.Kernel_UpdateVertex);
             gpuTrail.SetCSParams(computeShader, kernel);
-
-            if (gpuTrailCulling != null)
+            if (trailIndexBuffer != null)
             {
-                if (cullingEnable)
-                {
-                    gpuTrailCulling.SetComputeShaderParameterEnable(computeShader, kernel);
-                }
-                else
-                {
-                    gpuTrailCulling.SetComputeShaderParameterDisable(computeShader);
-                }
+                GpuTrailIndex.SetComputeShaderParameterEnable(computeShader, kernel, trailIndexBuffer);
+            }
+            else
+            {
+                GpuTrailIndex.SetComputeShaderParameterDisable(computeShader);
             }
 
             computeShader.SetBuffer(kernel, CSParam.VertexBuffer, vertexBuffer);
 
-            ComputeShaderUtility.Dispatch(computeShader, kernel, gpuTrail.trailNum);
+            ComputeShaderUtility.Dispatch(computeShader, kernel, gpuTrail.trailNum); // DipatchInderect() may be better
 
 
 #if false
@@ -190,11 +181,11 @@ namespace GpuTrailSystem
         // https://docs.unity3d.com/Manual/SinglePassInstancing.html
         protected bool IsSinglePassInstancedRendering => XRSettings.enabled && XRSettings.stereoRenderingMode == XRSettings.StereoRenderingMode.SinglePassInstanced;
 
-        public void UpdateArgsBuffer(IGpuTrailCulling gpuTrailCulling)
+        public void UpdateArgsBuffer(GraphicsBuffer trailIndexBuffer)
         {
             InitBufferIfNeed();
 
-            GraphicsBuffer.CopyCount(gpuTrailCulling.TrailIndexBuffer, argsBuffer, 4);
+            GraphicsBuffer.CopyCount(trailIndexBuffer, argsBuffer, 4);
 
             if (IsSinglePassInstancedRendering)
             {
@@ -211,21 +202,21 @@ namespace GpuTrailSystem
             */
         }
 
+        int[] tmpArgsData;
+
         public void ResetArgsBuffer()
         {
             InitBufferIfNeed();
 
-            var array = new NativeArray<int>(5, Allocator.Temp);
+            if (tmpArgsData == null) tmpArgsData = new int[5];
 
-            array[0] = indexNumPerTrail;
-            array[1] = gpuTrail.trailNum * (IsSinglePassInstancedRendering ? 2 : 1);
-            array[2] = 0;
-            array[3] = 0;
-            array[4] = 0;
+            tmpArgsData[0] = indexNumPerTrail;
+            tmpArgsData[1] = gpuTrail.trailNum * (IsSinglePassInstancedRendering ? 2 : 1);
+            tmpArgsData[2] = 0;
+            tmpArgsData[3] = 0;
+            tmpArgsData[4] = 0;
 
-            argsBuffer.SetData(array); // int[4]{ indexNumPerTrail, trailNum, 0, 0}
-
-            array.Dispose();
+            argsBuffer.SetData(tmpArgsData); // int[4]{ indexNumPerTrail, trailNum, 0, 0}
         }
 
 

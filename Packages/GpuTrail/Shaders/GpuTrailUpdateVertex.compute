@@ -5,6 +5,7 @@
 
 #include "GpuTrailVertex.cginc"
 #include "GpuTrailCSInclude.cginc"
+#include "GpuTrailIndexInclude.cginc"
 
 ////////////////////////////////////////////////////////////////////////////////
 // UpdateVertex
@@ -17,6 +18,8 @@ float3 _ToCameraDir; // for orthographics camera
 float3 _CameraPos;   // for perspective camera
 float _StartWidth;
 float _EndWidth;
+uint _LodNodeStep;
+
 
 inline bool useToCameraDir()
 {
@@ -79,17 +82,16 @@ float3 calcNodeDir(uint trailIdx, uint nodeIdxInTrail, uint totalInputNum)
 	return  normalize(dirPrev + dirNext);
 }
 
-#include "GpuTrailCullingInclude.cginc"
 
-uint _LodNodeStep;
 
 [numthreads(NUM_THREAD_X,1,1)]
 void UpdateVertex(uint3 id : SV_DispatchThreadID)
 {
 	uint trailIdxBufferIdx = id.x;
-	uint trailIdx = GetTrailIdxWithCulling(trailIdxBufferIdx);
-	if ( trailIdx < _TrailNum )
+	if ( trailIdxBufferIdx < _TrailNum )
 	{
+		uint trailIdx = GetTrailIdx(trailIdxBufferIdx);
+
 		Trail trail = _TrailBuffer[trailIdx];
 		uint totalInputNum = trail.totalInputNum;
 

@@ -4,7 +4,9 @@ MonoImporter:
   externalObjects: {}
   serializedVersion: 2
   defaultReferences:
-  - computeShader: {fileID: 7200000, guid: 365dde5f666348548b6a22b895af03ad, type: 3}
+  - calcLodCS: {fileID: 7200000, guid: 520ac2709c8d8744f94f20059d181905, type: 3}
+  - cullingCS: {fileID: 7200000, guid: 29d6c2bf7e3e352488c9b6ca97a0a245, type: 3}
+  - updateVertexCS: {fileID: 7200000, guid: 365dde5f666348548b6a22b895af03ad, type: 3}
   - material: {fileID: 2100000, guid: 5f6e1cac686a9714e9048568cfe33abf, type: 2}
   executionOrder: 0
   icon: {instanceID: 0}

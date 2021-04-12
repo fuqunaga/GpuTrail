@@ -10,7 +10,7 @@ float _TrailWidth;
 float3 _CameraPos;
 float4x3 _CameraFrustumNormals;
 StructuredBuffer<Node> _NodeBuffer;
-AppendStructuredBuffer<uint> _TrailIndexBuffer;
+AppendStructuredBuffer<uint> _TrailIndexBufferAppend;
 
 [numthreads(NUM_THREAD_X,1,1)]
 void UpdateTrailIdxBuffer (uint3 id : SV_DispatchThreadID)
@@ -35,7 +35,7 @@ void UpdateTrailIdxBuffer (uint3 id : SV_DispatchThreadID)
 						&& (dot(_CameraFrustumNormals[3], posFromCamera) > -_TrailWidth)
 				)
 				{
-					_TrailIndexBuffer.Append(trailIdx);
+					_TrailIndexBufferAppend.Append(trailIdx);
 					break;
 				}
 			}

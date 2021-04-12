@@ -1,6 +1,11 @@
-﻿#pragma kernel CalcLod NUM_THREAD_X=32
+﻿#pragma kernel UpdateTrailLodBuffer NUM_THREAD_X=32
+#pragma kernel UpdateTrailIndexBuffer NUM_THREAD_X=32
+
+#pragma multi_compile_local __ GPUTRAIL_TRAIL_INDEX_ON
 
 #include "GpuTrailCSInclude.cginc"
+#include "GpuTrailIndexInclude.cginc"
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // UpdateTrailIdxBuffer
@@ -8,14 +13,16 @@
 float3 _CameraPos;
 StructuredBuffer<Node> _NodeBuffer;
 StructuredBuffer<float> _LodDistanceBuffer; // Order By distance
-RWStructuredBuffer<uint> _TrailLodBuffer;
+RWStructuredBuffer<uint> _TrailLodBufferW;
 
 [numthreads(NUM_THREAD_X,1,1)]
-void CalcLod (uint3 id : SV_DispatchThreadID)
+void UpdateTrailLodBuffer (uint3 id : SV_DispatchThreadID)
 {
-	uint trailIdx = id.x;
-	if ( trailIdx < _TrailNum )
+	uint trailIdxBufferIdx = id.x;
+	if ( trailIdxBufferIdx < _TrailNum )
 	{
+		uint trailIdx = GetTrailIdx(trailIdxBufferIdx);
+
 		float minDistanceSq = -1.0;
 
 		uint nodeIdxStart = calcNodeIdx(trailIdx, 0);
@@ -46,6 +53,28 @@ void CalcLod (uint3 id : SV_DispatchThreadID)
 			}
 		}
 
-		_TrailLodBuffer[trailIdx] = nextLod-1;
+		_TrailLodBufferW[trailIdx] = nextLod-1;
+	}
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+// UpdateTrailIdxBuffer
+////////////////////////////////////////////////////////////////////////////////
+uint _CurrentLod;
+StructuredBuffer<uint> _TrailLodBuffer;
+AppendStructuredBuffer<uint> _TrailIdxBufferAppend;
+
+[numthreads(NUM_THREAD_X,1,1)]
+void  UpdateTrailIndexBuffer (uint3 id : SV_DispatchThreadID)
+{
+	uint trailIdxBufferIdx = id.x;
+	if ( trailIdxBufferIdx < _TrailNum )
+	{
+		uint trailIdx = GetTrailIdx(trailIdxBufferIdx);
+		if (_TrailLodBuffer[trailIdx] == _CurrentLod)
+		{
+			_TrailIdxBufferAppend.Append(trailIdx);
+		}
 	}
 }

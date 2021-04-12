@@ -602,8 +602,6 @@ GameObject:
   - component: {fileID: 1927869134}
   - component: {fileID: 1927869133}
   - component: {fileID: 1927869135}
-  - component: {fileID: 1927869136}
-  - component: {fileID: 1927869137}
   m_Layer: 0
   m_Name: GPUTrailIndirectCullingExample
   m_TagString: Untagged
@@ -666,45 +664,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b564af979b749d34daa757bd2fc6bcd7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  computeShader: {fileID: 7200000, guid: 365dde5f666348548b6a22b895af03ad, type: 3}
-  material: {fileID: 2100000, guid: 5f6e1cac686a9714e9048568cfe33abf, type: 2}
+  calcLodCS: {fileID: 7200000, guid: 520ac2709c8d8744f94f20059d181905, type: 3}
+  cullingCS: {fileID: 7200000, guid: 29d6c2bf7e3e352488c9b6ca97a0a245, type: 3}
+  updateVertexCS: {fileID: 7200000, guid: 365dde5f666348548b6a22b895af03ad, type: 3}
+  defaultMaterial: {fileID: 2100000, guid: 5f6e1cac686a9714e9048568cfe33abf, type: 2}
   startWidth: 0.05
   endWidth: 0.02
   lodSettings:
   - distance: 0
     lodNodeStep: 1
+    material: {fileID: 0}
   - distance: 100
     lodNodeStep: 2
+    material: {fileID: 0}
   cullingEnable: 1
-  cullingCameraLocalPosOffset: {x: 0, y: 0, z: 0}
   updateVertexEnable: 1
   renderingEnable: 1
---- !u!114 &1927869136
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1927869132}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bbf99238d7d4b32408c405a84e1053b4, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  cullingCS: {fileID: 7200000, guid: 29d6c2bf7e3e352488c9b6ca97a0a245, type: 3}
---- !u!114 &1927869137
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1927869132}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4d1bab49a16a0b64c9f9c254809230c4, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  calcLodCS: {fileID: 7200000, guid: 520ac2709c8d8744f94f20059d181905, type: 3}
 --- !u!850595691 &1995089004
 LightingSettings:
   m_ObjectHideFlags: 0
