@@ -603,6 +603,7 @@ GameObject:
   - component: {fileID: 1927869133}
   - component: {fileID: 1927869135}
   - component: {fileID: 1927869136}
+  - component: {fileID: 1927869137}
   m_Layer: 0
   m_Name: GPUTrailIndirectCullingExample
   m_TagString: Untagged
@@ -628,9 +629,11 @@ MonoBehaviour:
     life: 7
     inputPerSec: 60
     minNodeDistance: 0.1
+  debugDrawGizmosInputPos: 0
+  debugDrawGizmosNodePos: 0
   particle:
     particleCS: {fileID: 7200000, guid: 16daaa733f6a1194394beb0d2f0d6fb9, type: 3}
-    particleNum: 10000
+    particleNum: 1000
     startSpeed: 1
     forceRate: 0.15
     damping: 0.95
@@ -667,7 +670,11 @@ MonoBehaviour:
   material: {fileID: 2100000, guid: 5f6e1cac686a9714e9048568cfe33abf, type: 2}
   startWidth: 0.05
   endWidth: 0.02
-  lodList: []
+  lodSettings:
+  - distance: 0
+    lodNodeStep: 1
+  - distance: 100
+    lodNodeStep: 2
   cullingEnable: 1
   cullingCameraLocalPosOffset: {x: 0, y: 0, z: 0}
   updateVertexEnable: 1
@@ -685,6 +692,19 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   cullingCS: {fileID: 7200000, guid: 29d6c2bf7e3e352488c9b6ca97a0a245, type: 3}
+--- !u!114 &1927869137
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1927869132}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4d1bab49a16a0b64c9f9c254809230c4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  calcLodCS: {fileID: 7200000, guid: 520ac2709c8d8744f94f20059d181905, type: 3}
 --- !u!850595691 &1995089004
 LightingSettings:
   m_ObjectHideFlags: 0

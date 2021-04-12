@@ -1,23 +1,23 @@
-﻿#pragma kernel UpdateTrailIdxBuffer NUM_THREAD_X=32
+﻿#pragma kernel CalcLod NUM_THREAD_X=32
 
 #include "GpuTrailCSInclude.cginc"
-
 
 ////////////////////////////////////////////////////////////////////////////////
 // UpdateTrailIdxBuffer
 ////////////////////////////////////////////////////////////////////////////////
-float _TrailWidth;
 float3 _CameraPos;
-float4x3 _CameraFrustumNormals;
 StructuredBuffer<Node> _NodeBuffer;
-AppendStructuredBuffer<uint> _TrailIndexBuffer;
+StructuredBuffer<float> _LodDistanceBuffer; // Order By distance
+RWStructuredBuffer<uint> _TrailLodBuffer;
 
 [numthreads(NUM_THREAD_X,1,1)]
-void UpdateTrailIdxBuffer (uint3 id : SV_DispatchThreadID)
+void CalcLod (uint3 id : SV_DispatchThreadID)
 {
 	uint trailIdx = id.x;
 	if ( trailIdx < _TrailNum )
 	{
+		float minDistanceSq = -1.0;
+
 		uint nodeIdxStart = calcNodeIdx(trailIdx, 0);
 		uint nodeIdxEnd = nodeIdxStart + _NodeNumPerTrail;
 		for(uint nodeIdx = nodeIdxStart; nodeIdx < nodeIdxEnd; nodeIdx++)
@@ -25,20 +25,27 @@ void UpdateTrailIdxBuffer (uint3 id : SV_DispatchThreadID)
 			Node node = _NodeBuffer[nodeIdx];
 			if ( node.time > 0)
 			{
-				// CheckCulling!
 				float3 posFromCamera = node.pos - _CameraPos;
+				float distanceSq = dot(posFromCamera, posFromCamera);
 
-				if ( 
-						(dot(_CameraFrustumNormals[0], posFromCamera) > -_TrailWidth) 
-						&& (dot(_CameraFrustumNormals[1], posFromCamera) > -_TrailWidth)
-						&& (dot(_CameraFrustumNormals[2], posFromCamera) > -_TrailWidth)
-						&& (dot(_CameraFrustumNormals[3], posFromCamera) > -_TrailWidth)
-				)
-				{
-					_TrailIndexBuffer.Append(trailIdx);
-					break;
-				}
+				minDistanceSq = (minDistanceSq<0) ? distanceSq : min(minDistanceSq, distanceSq);
 			}
 		}
+	
+
+		float minDistance = sqrt(minDistanceSq);
+
+		uint num, stride;
+		_LodDistanceBuffer.GetDimensions(num, stride);
+
+		for(uint nextLod=1; nextLod<num; ++nextLod)
+		{
+			if (minDistance < _LodDistanceBuffer[nextLod])
+			{
+				break;
+			}
+		}
+
+		_TrailLodBuffer[trailIdx] = nextLod-1;
 	}
 }

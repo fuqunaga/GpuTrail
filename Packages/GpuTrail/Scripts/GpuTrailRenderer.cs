@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -7,18 +8,27 @@ namespace GpuTrailSystem
     [RequireComponent(typeof(IGpuTrailAppendNode))]
     public class GpuTrailRenderer : MonoBehaviour
     {
+        [System.Serializable]
+        public class LodSetting
+        {
+            public float distance = 0f;
+            public int lodNodeStep = 1;
+        }
+
         public ComputeShader computeShader;
         public Material material;
         public float startWidth = 1f;
         public float endWidth = 1f;
 
         protected IGpuTrailCulling gpuTrailCulling;
+        protected GpuTrailCalcLod gpuTrailCalcLod;
         protected Camera currentCamera;
 
         IGpuTrailAppendNode gpuTrailAppendNode;
         GpuTrail gpuTrail => gpuTrailAppendNode.GpuTrail;
 
-        [SerializeField] // for debug
+        [SerializeField]
+        protected List<LodSetting> lodSettings = new List<LodSetting>();
         protected List<GpuTrailRenderer_Lod> lodList = new List<GpuTrailRenderer_Lod>();
 
         [Header("Debug")]
@@ -59,11 +69,19 @@ namespace GpuTrailSystem
                 }
             }
 
-            lodList.Add(new GpuTrailRenderer_Lod(gpuTrail, computeShader));
+            if (gpuTrailCalcLod == null)
+            {
+                gpuTrailCalcLod = GetComponent<GpuTrailCalcLod>();
+            }
+
+            if (!lodSettings.Any()) lodSettings.Add(new LodSetting());
         }
 
         protected virtual void LateUpdate()
         {
+            if (lodSettings.Count != lodList.Count) ResetLodList();
+
+
             gpuTrailAppendNode.AppendNode();
 
             if (gpuTrailCulling != null)
@@ -79,6 +97,12 @@ namespace GpuTrailSystem
                 {
                     lodList.ForEach(lod => lod.ResetArgsBuffer());
                 }
+            }
+
+
+            if (gpuTrailCalcLod != null)
+            {
+                gpuTrailCalcLod.CalcLod(TargetCamera, gpuTrail, lodSettings);
             }
 
 
@@ -109,16 +133,31 @@ namespace GpuTrailSystem
 
         public virtual void OnDestroy()
         {
-            lodList.ForEach(lod => lod.Dispose());
+            DisposeLodList();
         }
 
         #endregion
+
+
+        protected void ResetLodList()
+        {
+            DisposeLodList();
+
+            lodList = lodSettings.Select(settings => new GpuTrailRenderer_Lod(gpuTrail, computeShader, settings)).ToList();
+        }
+
+        void DisposeLodList()
+        {
+            lodList.ForEach(lod => lod.Dispose());
+            lodList.Clear();
+        }
 
 
         private void OnBeginCameraRendering(ScriptableRenderContext context, Camera camera)
         {
             currentCamera = camera;
         }
+
 
 
         #region Debug

@@ -8,7 +8,6 @@ using UnityEngine.XR;
 
 namespace GpuTrailSystem
 {
-    [System.Serializable] // for debug
     public class GpuTrailRenderer_Lod : IDisposable
     {
         #region Static
@@ -41,24 +40,29 @@ namespace GpuTrailSystem
         #endregion
 
 
-        readonly GpuTrail gpuTrail;
-        readonly ComputeShader computeShader;
-        public int lodNodeStep = 1;
+        protected GpuTrail gpuTrail;
+        protected ComputeShader computeShader;
+        protected GpuTrailRenderer.LodSetting lodSetting;
 
         protected GraphicsBuffer vertexBuffer;
         protected GraphicsBuffer indexBuffer;
         protected GraphicsBuffer argsBuffer;
+
+
+        int lodNodeStep => lodSetting.lodNodeStep;
 
         public int nodeNumPerTrailWithLod => gpuTrail.nodeNumPerTrail / lodNodeStep;
         public int vertexNumPerTrail => nodeNumPerTrailWithLod * 2;
         public int vertexBufferSize => gpuTrail.trailNum * vertexNumPerTrail;
         public int indexNumPerTrail => (nodeNumPerTrailWithLod - 1) * 6;
 
-        public GpuTrailRenderer_Lod(GpuTrail gpuTrail, ComputeShader computeShader)
+        public GpuTrailRenderer_Lod(GpuTrail gpuTrail, ComputeShader computeShader, GpuTrailRenderer.LodSetting lodSetting)
         {
             this.gpuTrail = gpuTrail;
             this.computeShader = computeShader;
+            this.lodSetting = lodSetting;
         }
+
 
         public void Dispose()
         {
@@ -71,6 +75,11 @@ namespace GpuTrailSystem
             if ((vertexBuffer != null) && (vertexBuffer.count == vertexBufferSize))
             {
                 return;
+            }
+
+            if (gpuTrail == null || !(0 < lodNodeStep && lodNodeStep < gpuTrail.nodeNumPerTrail))
+            {
+                Debug.Log("hoge");
             }
 
             Assert.IsTrue(0 < lodNodeStep && lodNodeStep < gpuTrail.nodeNumPerTrail, $"Invalid lodNodeStep[{lodNodeStep}]");
@@ -251,7 +260,7 @@ namespace GpuTrailSystem
                     if (i == 0) { tmpColor = Color.red; }
                     if (i == num - 1) { tmpColor = Color.green; }
 
-                    if ( tmpColor.HasValue )
+                    if (tmpColor.HasValue)
                     {
                         Gizmos.color = tmpColor.Value;
 
@@ -262,7 +271,7 @@ namespace GpuTrailSystem
 
                     Gizmos.DrawLine(v0.pos, v1.pos);
 
-                    if ( tmpColor.HasValue)
+                    if (tmpColor.HasValue)
                     {
                         Gizmos.color = defaultColor;
                     }
