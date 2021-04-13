@@ -19,7 +19,7 @@ RWStructuredBuffer<uint> _TrailLodBufferW;
 void UpdateTrailLodBuffer (uint3 id : SV_DispatchThreadID)
 {
 	uint trailIdxBufferIdx = id.x;
-	if ( trailIdxBufferIdx < _TrailNum )
+	if ( trailIdxBufferIdx < GetTrailNum() )
 	{
 		uint trailIdx = GetTrailIdx(trailIdxBufferIdx);
 
@@ -69,7 +69,7 @@ AppendStructuredBuffer<uint> _TrailIdxBufferAppend;
 void  UpdateTrailIndexBuffer (uint3 id : SV_DispatchThreadID)
 {
 	uint trailIdxBufferIdx = id.x;
-	if ( trailIdxBufferIdx < _TrailNum )
+	if ( trailIdxBufferIdx < GetTrailNum() )
 	{
 		uint trailIdx = GetTrailIdx(trailIdxBufferIdx);
 		if (_TrailLodBuffer[trailIdx] == _CurrentLod)

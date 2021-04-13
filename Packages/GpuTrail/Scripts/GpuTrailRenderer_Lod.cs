@@ -40,9 +40,10 @@ namespace GpuTrailSystem
         #endregion
 
 
-        protected GpuTrail gpuTrail;
-        protected ComputeShader computeShader;
-        protected GpuTrailRenderer.LodSetting lodSetting;
+        protected readonly GpuTrail gpuTrail;
+        protected readonly ComputeShader computeShader;
+        protected readonly GpuTrailRenderer.LodSetting lodSetting;
+        protected readonly GpuTrailIndexDispatcher gpuTrailIndexDispatcher = new GpuTrailIndexDispatcher();
 
         protected GraphicsBuffer vertexBuffer;
         protected GraphicsBuffer indexBuffer;
@@ -67,6 +68,7 @@ namespace GpuTrailSystem
         public void Dispose()
         {
             ReleaseBuffers();
+            gpuTrailIndexDispatcher.Dispose();
         }
 
 
@@ -108,11 +110,14 @@ namespace GpuTrailSystem
 
         protected void ReleaseBuffers()
         {
-            if (vertexBuffer != null) { vertexBuffer.Release(); vertexBuffer = null; }
-            if (indexBuffer != null) { indexBuffer.Release(); indexBuffer = null; }
-            if (argsBuffer != null) { argsBuffer.Release(); argsBuffer = null; }
-        }
+            vertexBuffer?.Release();
+            indexBuffer?.Release();
+            argsBuffer?.Release();
 
+            vertexBuffer = null;
+            indexBuffer = null;
+            argsBuffer = null;
+        }
 
         public void UpdateVertexBuffer(Camera camera, float startWidth, float endWidth, GraphicsBuffer trailIndexBuffer)
         {
@@ -135,18 +140,17 @@ namespace GpuTrailSystem
 
             var kernel = computeShader.FindKernel(CSParam.Kernel_UpdateVertex);
             gpuTrail.SetCSParams(computeShader, kernel);
+            computeShader.SetBuffer(kernel, CSParam.VertexBuffer, vertexBuffer);
+
             if (trailIndexBuffer != null)
             {
-                GpuTrailIndex.SetComputeShaderParameterEnable(computeShader, kernel, trailIndexBuffer);
+                gpuTrailIndexDispatcher.Dispatch(computeShader, kernel, trailIndexBuffer);
             }
             else
             {
-                GpuTrailIndex.SetComputeShaderParameterDisable(computeShader);
+                gpuTrailIndexDispatcher.Dispatch(computeShader, kernel, gpuTrail.trailNum);
             }
 
-            computeShader.SetBuffer(kernel, CSParam.VertexBuffer, vertexBuffer);
-
-            ComputeShaderUtility.Dispatch(computeShader, kernel, gpuTrail.trailNum); // DipatchInderect() may be better
 
 
 #if false

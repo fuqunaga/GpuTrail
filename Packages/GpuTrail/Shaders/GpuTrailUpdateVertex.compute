@@ -88,7 +88,7 @@ float3 calcNodeDir(uint trailIdx, uint nodeIdxInTrail, uint totalInputNum)
 void UpdateVertex(uint3 id : SV_DispatchThreadID)
 {
 	uint trailIdxBufferIdx = id.x;
-	if ( trailIdxBufferIdx < _TrailNum )
+	if ( trailIdxBufferIdx < GetTrailNum() )
 	{
 		uint trailIdx = GetTrailIdx(trailIdxBufferIdx);
 

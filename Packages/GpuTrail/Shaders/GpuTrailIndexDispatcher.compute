@@ -1,0 +1,31 @@
+#pragma kernel CalcArgsBufferForCS
+#pragma kernel ArgsBufferMultiply
+
+
+////////////////////////////////////////////////////////////////////////////////
+// CalcArgsBufferForCS
+////////////////////////////////////////////////////////////////////////////////
+uint _ThreadGroupSizeX;
+StructuredBuffer<uint> _TotalThreadNum;
+RWStructuredBuffer<uint> _ArgsBufferForCS;
+
+[numthreads(1,1,1)]
+void CalcArgsBufferForCS()
+{
+	float groupNumX = ceil((float)_TotalThreadNum[0] / _ThreadGroupSizeX);
+	_ArgsBufferForCS[0] = groupNumX;
+	_ArgsBufferForCS[1] = 1;
+	_ArgsBufferForCS[2] = 1;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// ArgsBufferMultipy
+////////////////////////////////////////////////////////////////////////////////
+RWStructuredBuffer<uint> _ArgsBuffer;
+
+[numthreads(1,1,1)]
+void ArgsBufferMultiply()
+{
+	uint v = _ArgsBuffer[1];
+	_ArgsBuffer[1] = v * 2;
+}

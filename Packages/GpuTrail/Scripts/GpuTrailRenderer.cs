@@ -30,6 +30,7 @@ namespace GpuTrailSystem
         #endregion
 
 
+        public ComputeShader trailIndexDispatcherCS;
         public ComputeShader calcLodCS;
         public ComputeShader cullingCS;
         public ComputeShader updateVertexCS;
@@ -42,7 +43,7 @@ namespace GpuTrailSystem
 
         // Culling/CalcLod function can be customized.
         public Func<Camera, GpuTrail, float, GraphicsBuffer> calcTrailIndexBufferCulling;
-        public Func<IEnumerable<float>, Camera, GpuTrail, IReadOnlyList<GraphicsBuffer>> calcTrailIndexBufferCalcLod;
+        public Func<IEnumerable<float>, Camera, GpuTrail, GraphicsBuffer, IReadOnlyList<GraphicsBuffer>> calcTrailIndexBufferCalcLod;
 
         protected GpuTrailRenderer_Culling defaultCulling;
         protected GpuTrailRenderer_CalcLod defaultCalcLod;
@@ -77,6 +78,11 @@ namespace GpuTrailSystem
 
         protected virtual void Start()
         {
+            if (trailIndexDispatcherCS != null)
+            {
+                GpuTrailIndexDispatcher.Init(trailIndexDispatcherCS);
+            }
+
             if (gpuTrailAppendNode == null)
             {
                 gpuTrailAppendNode = GetComponent<IGpuTrailAppendNode>();
@@ -121,7 +127,7 @@ namespace GpuTrailSystem
                     calcTrailIndexBufferCalcLod = defaultCalcLod.CalcTrailIndexBuffers;
                 }
 
-                trailIndexBuffersLod = calcTrailIndexBufferCalcLod(lodSettings.Select(setting => setting.distance), TargetCamera, gpuTrail);
+                trailIndexBuffersLod = calcTrailIndexBufferCalcLod(lodSettings.Select(setting => setting.distance), TargetCamera, gpuTrail, trailIndexBufferCulling);
             }
 
 

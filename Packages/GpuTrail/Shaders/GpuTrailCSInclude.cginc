@@ -1,5 +1,5 @@
-﻿#ifndef GPUTRAIL_VARIABLES_CS_INCLUDED
-#define GPUTRAIL_VARIABLES_CS_INCLUDED
+﻿#ifndef GPUTRAIL_CS_INCLUDED
+#define GPUTRAIL_CS_INCLUDED
 
 struct Trail
 {
@@ -29,4 +29,4 @@ uint calcNodeIdx(uint trailIdx, uint nodeIdxInTrail)
 	return (trailIdx * _NodeNumPerTrail) + (nodeIdxInTrail % _NodeNumPerTrail);
 }
 
-#endif // GPUTRAIL_VARIABLES_CS_INCLUDED
+#endif // GPUTRAIL_CS_INCLUDED
