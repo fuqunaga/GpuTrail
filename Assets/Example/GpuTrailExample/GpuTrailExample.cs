@@ -1,8 +1,8 @@
 ﻿namespace GpuTrailSystem.Example
 {
-    public class GpuTrailIndirectExample : GpuTrailAppendNode
+    public class GpuTrailExample : GpuTrailAppendNode
     {
-        public GpuTrailIndirectExampleParticle particle;
+        public GpuTrailExampleParticle particle;
         public bool particleGizmosEnable;
 
         protected override void Start()

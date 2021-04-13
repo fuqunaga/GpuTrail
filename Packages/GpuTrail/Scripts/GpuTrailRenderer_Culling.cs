@@ -5,7 +5,6 @@ using UnityEngine;
 
 namespace GpuTrailSystem
 {
-    [Serializable]
     public class GpuTrailRenderer_Culling
     {
         public static class CSParam
@@ -18,8 +17,12 @@ namespace GpuTrailSystem
         }
 
 
-        public ComputeShader cullingCS;
+        protected ComputeShader cullingCS;
         protected GraphicsBuffer trailIndexBuffer;
+
+        public bool debugCameraPosLocalOffsetEnable;
+        public Vector3 debugCameraPosLocalOffset;
+
 
         public GpuTrailRenderer_Culling(ComputeShader cullingCS) => this.cullingCS = cullingCS;
 
@@ -39,7 +42,7 @@ namespace GpuTrailSystem
             if (trailIndexBuffer != null) trailIndexBuffer.Release();
         }
 
-        public virtual GraphicsBuffer CalcTrailIndexBuffer(Camera camera, GpuTrail gpuTrail, float trailWidth/*, Vector3? cameraPosLocalOffset*/)
+        public GraphicsBuffer CalcTrailIndexBuffer(Camera camera, GpuTrail gpuTrail, float trailWidth)
         {
             if (trailIndexBuffer == null)
             {
@@ -48,17 +51,14 @@ namespace GpuTrailSystem
 
             var cameraTrans = camera.transform;
             var cameraPos = cameraTrans.position;
-            /*
-            if (cameraPosLocalOffset.HasValue)
+            if (debugCameraPosLocalOffsetEnable)
             {
-                cameraPos += cameraTrans.rotation * cameraPosLocalOffset.Value;
+                cameraPos += cameraTrans.rotation * debugCameraPosLocalOffset;
             }
-            */
 
             var planes = GeometryUtility.CalculateFrustumPlanes(camera);
             var normals = planes.Take(4).Select(p => p.normal).ToList();
             var normalsFloat = Enumerable.Range(0, 3).SelectMany(i => normals.Select(n => n[i])).ToArray(); // row major -> column major
-
 
 
             trailIndexBuffer.SetCounterValue(0);

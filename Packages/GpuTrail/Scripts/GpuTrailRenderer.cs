@@ -8,10 +8,11 @@ namespace GpuTrailSystem
 {
     /// <summary>
     /// Rendering GpuTrail
-    /// Seqence
-    /// GpuTrailAppendNode.UpdateInputBuffer() -(InputBuffer)-> GpuTrailAppendNode.AppendNode() -(TrailBuffer,NodeBuffer)-> 
-    /// [GpuTrailCulling -(TrailIndexBuffer)->] [GpuTrailRendering_CalcLod -(TrailIndexBufers)->] 
-    /// GpuTrailRendering_Lod.UpdateVertexBuffer()/UpdateArgsBuffer() -(VertexBuffer, ArgsBuffer) -> GpuTrailRendering_Lod.OnRenderObject()
+    /// 
+    /// Processing flow:
+    ///  GpuTrailAppendNode.UpdateInputBuffer() -(InputBuffer)-> GpuTrailAppendNode.AppendNode() -(TrailBuffer,NodeBuffer)-> 
+    ///  [GpuTrailCulling -(TrailIndexBuffer)->] [GpuTrailRendering_CalcLod -(TrailIndexBufers)->] 
+    ///  GpuTrailRendering_Lod.UpdateVertexBuffer()/UpdateArgsBuffer() -(VertexBuffer, ArgsBuffer) -> GpuTrailRendering_Lod.OnRenderObject()
     /// </summary>
     [RequireComponent(typeof(IGpuTrailAppendNode))]
     public class GpuTrailRenderer : MonoBehaviour
@@ -22,19 +23,22 @@ namespace GpuTrailSystem
         public class LodSetting
         {
             public float distance = 0f;
-            public int lodNodeStep = 1;
+            public int lodNodeStep = 1; // Node steps to generate a vertex.　1:all nodes, 2:1/2 nodes, 3:1/3 nodes...
             public Material material;
         }
 
         #endregion
+
 
         public ComputeShader calcLodCS;
         public ComputeShader cullingCS;
         public ComputeShader updateVertexCS;
 
         public Material defaultMaterial;
-        public float startWidth = 1f;
-        public float endWidth = 1f;
+        public float startWidth = 0.1f;
+        public float endWidth = 0.1f;
+
+        protected IGpuTrailAppendNode gpuTrailAppendNode;
 
         // Culling/CalcLod function can be customized.
         public Func<Camera, GpuTrail, float, GraphicsBuffer> calcTrailIndexBufferCulling;
@@ -42,21 +46,20 @@ namespace GpuTrailSystem
 
         protected GpuTrailRenderer_Culling defaultCulling;
         protected GpuTrailRenderer_CalcLod defaultCalcLod;
-        protected Camera currentCamera;
-
-        IGpuTrailAppendNode gpuTrailAppendNode;
-        GpuTrail gpuTrail => gpuTrailAppendNode.GpuTrail;
-
+        
         [SerializeField]
         protected List<LodSetting> lodSettings = new List<LodSetting>();
         protected List<GpuTrailRenderer_Lod> lodList = new List<GpuTrailRenderer_Lod>();
+
+        protected Camera currentCameraOnRendering;
+
 
         [Header("Debug")]
         public bool cullingEnable = true;
         public bool updateVertexEnable = true;
         public bool renderingEnable = true;
 
-
+        protected GpuTrail gpuTrail => gpuTrailAppendNode.GpuTrail;
         protected virtual Camera TargetCamera => Camera.main;
 
 
@@ -153,10 +156,10 @@ namespace GpuTrailSystem
         {
             if (Camera.current != null)
             {
-                currentCamera = Camera.current;
+                currentCameraOnRendering = Camera.current;
             }
 
-            if ((currentCamera == null) || (currentCamera.cullingMask & (1 << gameObject.layer)) == 0)
+            if ((currentCameraOnRendering == null) || (currentCameraOnRendering.cullingMask & (1 << gameObject.layer)) == 0)
             {
                 return;
             }
@@ -203,7 +206,7 @@ namespace GpuTrailSystem
 
         private void OnBeginCameraRendering(ScriptableRenderContext context, Camera camera)
         {
-            currentCamera = camera;
+            currentCameraOnRendering = camera;
         }
 
 

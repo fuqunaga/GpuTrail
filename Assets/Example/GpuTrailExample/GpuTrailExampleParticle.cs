@@ -5,7 +5,7 @@ namespace GpuTrailSystem.Example
 {
 
     [System.Serializable]
-    public class GpuTrailIndirectExampleParticle
+    public class GpuTrailExampleParticle
     {
         struct Particle
         {

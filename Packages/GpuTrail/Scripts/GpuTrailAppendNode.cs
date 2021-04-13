@@ -41,21 +41,22 @@ namespace GpuTrailSystem
 
         #region Debug
 
-        public bool debugDrawGizmosInputPos;
-        public bool debugDrawGizmosNodePos;
+        public float gizmosSize = 0.5f;
+        public bool gizmosDrawInputPos;
+        public bool gizmosDrawNodePos;
 
         public virtual void OnDrawGizmosSelected()
         {
-            if (debugDrawGizmosInputPos)
+            if (gizmosDrawInputPos)
             {
                 Gizmos.color = Color.red;
-                gpuTrail.DrawGizmosInputPos(0.1f);
+                gpuTrail.DrawGizmosInputPos(gizmosSize);
             }
 
-            if (debugDrawGizmosNodePos)
+            if (gizmosDrawNodePos)
             {
                 Gizmos.color = Color.green;
-                gpuTrail.DrawGizmosInputPos(0.1f);
+                gpuTrail.DrawGizmosNodePos(gizmosSize);
             }
         }
 

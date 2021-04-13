@@ -603,7 +603,7 @@ GameObject:
   - component: {fileID: 1927869133}
   - component: {fileID: 1927869135}
   m_Layer: 0
-  m_Name: GPUTrailIndirectCullingExample
+  m_Name: GpuTrailCullingAndLodExample
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -627,11 +627,12 @@ MonoBehaviour:
     life: 7
     inputPerSec: 60
     minNodeDistance: 0.1
-  debugDrawGizmosInputPos: 0
-  debugDrawGizmosNodePos: 0
+  gizmosSize: 0.5
+  gizmosDrawInputPos: 0
+  gizmosDrawNodePos: 0
   particle:
     particleCS: {fileID: 7200000, guid: 16daaa733f6a1194394beb0d2f0d6fb9, type: 3}
-    particleNum: 1000
+    particleNum: 10000
     startSpeed: 1
     forceRate: 0.15
     damping: 0.95
@@ -673,10 +674,13 @@ MonoBehaviour:
   lodSettings:
   - distance: 0
     lodNodeStep: 1
-    material: {fileID: 0}
-  - distance: 100
+    material: {fileID: 2100000, guid: 5f6e1cac686a9714e9048568cfe33abf, type: 2}
+  - distance: 50
     lodNodeStep: 2
-    material: {fileID: 0}
+    material: {fileID: 2100000, guid: 5286ad6d17bb55945901923cdfdf8ece, type: 2}
+  - distance: 100
+    lodNodeStep: 5
+    material: {fileID: 2100000, guid: f27b2a3e5a7ca1e438b7a7c2cf5993f8, type: 2}
   cullingEnable: 1
   updateVertexEnable: 1
   renderingEnable: 1
