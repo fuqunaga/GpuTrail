@@ -674,13 +674,16 @@ MonoBehaviour:
   startWidth: 0.05
   endWidth: 0.02
   lodSettings:
-  - distance: 0
+  - enable: 1
+    startDistance: 0
     lodNodeStep: 1
     material: {fileID: 2100000, guid: 5f6e1cac686a9714e9048568cfe33abf, type: 2}
-  - distance: 50
+  - enable: 1
+    startDistance: 50
     lodNodeStep: 2
     material: {fileID: 2100000, guid: 5286ad6d17bb55945901923cdfdf8ece, type: 2}
-  - distance: 100
+  - enable: 1
+    startDistance: 100
     lodNodeStep: 5
     material: {fileID: 2100000, guid: f27b2a3e5a7ca1e438b7a7c2cf5993f8, type: 2}
   cullingEnable: 1

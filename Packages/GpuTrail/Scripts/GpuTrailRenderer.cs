@@ -22,8 +22,15 @@ namespace GpuTrailSystem
         [System.Serializable]
         public class LodSetting
         {
-            public float distance = 0f;
+            public bool enable = true;
+
+            [Tooltip("The distance where this Lod starts.\nThe smallest Lod will be treated as 0.")]
+            public float startDistance = 0f;
+
+            [Tooltip("The node steps to generate a vertex.\n1: all nodes, 2: 1/2 nodes, 3: 1/3 nodes...")]
             public int lodNodeStep = 1; // Node steps to generate a vertex.　1:all nodes, 2:1/2 nodes, 3:1/3 nodes...
+
+            [Tooltip("The lod specific material.\nIf null then GpuTrailRenderer.defaultmMaterial would be used.")]
             public Material material;
         }
 
@@ -127,26 +134,24 @@ namespace GpuTrailSystem
                     calcTrailIndexBufferCalcLod = defaultCalcLod.CalcTrailIndexBuffers;
                 }
 
-                trailIndexBuffersLod = calcTrailIndexBufferCalcLod(lodSettings.Select(setting => setting.distance), TargetCamera, gpuTrail, trailIndexBufferCulling);
+                trailIndexBuffersLod = calcTrailIndexBufferCalcLod(lodSettings.Select(setting => setting.startDistance), TargetCamera, gpuTrail, trailIndexBufferCulling);
             }
 
 
             // UpdateVertex
             if (updateVertexEnable)
             {
-                for (var i = 0; i < lodList.Count; ++i)
+                ForeachLod((lod, idx) =>
                 {
-                    var lod = lodList[i];
-                    var trailIndexBuffer = trailIndexBuffersLod?[i] ?? trailIndexBufferCulling;
+                    var trailIndexBuffer = trailIndexBuffersLod?[idx] ?? trailIndexBufferCulling;
                     lod.UpdateVertexBuffer(TargetCamera, startWidth, endWidth, trailIndexBuffer);
-                }
+                });
             }
 
             // UpdateArgsBuffer
-            for (var i = 0; i < lodList.Count; ++i)
+            ForeachLod((lod, idx) =>
             {
-                var lod = lodList[i];
-                var trailIndexBuffer = trailIndexBuffersLod?[i] ?? trailIndexBufferCulling;
+                var trailIndexBuffer = trailIndexBuffersLod?[idx] ?? trailIndexBufferCulling;
                 if (trailIndexBuffer != null)
                 {
                     lod.UpdateArgsBuffer(trailIndexBuffer);
@@ -155,7 +160,7 @@ namespace GpuTrailSystem
                 {
                     lod.ResetArgsBuffer();
                 }
-            }
+            });
         }
 
         protected virtual void OnRenderObject()
@@ -172,16 +177,15 @@ namespace GpuTrailSystem
 
             if (renderingEnable)
             {
-                for(var i=0; i<lodList.Count; ++i)
+                ForeachLod((lod, idx) =>
                 {
-                    var lod = lodList[i];
-                    var settings = lodSettings[i];
+                    var settings = lodSettings[idx];
 
                     var material = settings.material;
                     if (material == null) material = defaultMaterial;
 
                     lod.OnRenderObject(material);
-                }
+                });
             }
         }
 
@@ -194,6 +198,21 @@ namespace GpuTrailSystem
         }
 
         #endregion
+
+
+
+
+        void ForeachLod(Action<GpuTrailRenderer_Lod, int> action)
+        {
+            for (var i = 0; i < lodList.Count; ++i)
+            {
+                if (lodSettings[i].enable)
+                {
+                    action(lodList[i], i);
+                }
+            }
+        }
+
 
 
         protected void ResetLodList()
