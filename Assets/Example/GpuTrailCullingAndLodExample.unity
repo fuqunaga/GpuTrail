@@ -670,14 +670,14 @@ MonoBehaviour:
   calcLodCS: {fileID: 7200000, guid: 520ac2709c8d8744f94f20059d181905, type: 3}
   cullingCS: {fileID: 7200000, guid: 29d6c2bf7e3e352488c9b6ca97a0a245, type: 3}
   updateVertexCS: {fileID: 7200000, guid: 365dde5f666348548b6a22b895af03ad, type: 3}
-  defaultMaterial: {fileID: 2100000, guid: 5f6e1cac686a9714e9048568cfe33abf, type: 2}
+  defaultMaterial: {fileID: 2100000, guid: fc954921d9989914aaa08a45abd767cd, type: 2}
   startWidth: 0.05
   endWidth: 0.02
   lodSettings:
   - enable: 1
     startDistance: 0
     lodNodeStep: 1
-    material: {fileID: 2100000, guid: 5f6e1cac686a9714e9048568cfe33abf, type: 2}
+    material: {fileID: 2100000, guid: fc954921d9989914aaa08a45abd767cd, type: 2}
   - enable: 1
     startDistance: 50
     lodNodeStep: 2
@@ -686,6 +686,7 @@ MonoBehaviour:
     startDistance: 100
     lodNodeStep: 5
     material: {fileID: 2100000, guid: f27b2a3e5a7ca1e438b7a7c2cf5993f8, type: 2}
+  appendNodeEnable: 1
   cullingEnable: 1
   updateVertexEnable: 1
   renderingEnable: 1

@@ -29,10 +29,13 @@ void UpdateTrailIdxBuffer (uint3 id : SV_DispatchThreadID)
 				float3 posFromCamera = node.pos - _CameraPos;
 
 				if ( 
-						(dot(_CameraFrustumNormals[0], posFromCamera) > -_TrailWidth) 
-						&& (dot(_CameraFrustumNormals[1], posFromCamera) > -_TrailWidth)
-						&& (dot(_CameraFrustumNormals[2], posFromCamera) > -_TrailWidth)
-						&& (dot(_CameraFrustumNormals[3], posFromCamera) > -_TrailWidth)
+					/*
+					(dot(_CameraFrustumNormals[0], posFromCamera) > -_TrailWidth) 
+					&& (dot(_CameraFrustumNormals[1], posFromCamera) > -_TrailWidth)
+					&& (dot(_CameraFrustumNormals[2], posFromCamera) > -_TrailWidth)
+					&& (dot(_CameraFrustumNormals[3], posFromCamera) > -_TrailWidth)
+					*/
+					all(mul(_CameraFrustumNormals, posFromCamera) > -_TrailWidth)
 				)
 				{
 					_TrailIndexBufferAppend.Append(trailIdx);

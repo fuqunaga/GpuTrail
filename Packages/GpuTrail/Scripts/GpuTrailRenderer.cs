@@ -63,6 +63,7 @@ namespace GpuTrailSystem
 
 
         [Header("Debug")]
+        public bool appendNodeEnable = true;
         public bool cullingEnable = true;
         public bool updateVertexEnable = true;
         public bool renderingEnable = true;
@@ -103,9 +104,12 @@ namespace GpuTrailSystem
         {
             if (lodSettings.Count != lodList.Count) ResetLodList();
 
-            
+
             // AppendNode
-            gpuTrailAppendNode.AppendNode();
+            if (appendNodeEnable)
+            {
+                gpuTrailAppendNode.AppendNode();
+            }
 
 
             // Culling

@@ -45,7 +45,8 @@ void UpdateTrailLodBuffer (uint3 id : SV_DispatchThreadID)
 		uint num, stride;
 		_LodDistanceBuffer.GetDimensions(num, stride);
 
-		for(uint nextLod=1; nextLod<num; ++nextLod)
+		uint nextLod=1;
+		for(; nextLod<num; ++nextLod)
 		{
 			if (minDistance < _LodDistanceBuffer[nextLod])
 			{
