@@ -6,7 +6,7 @@ ComputeShader implementation trails for Unity
 
 # Installation
 Add the following address to UnitPackageManager.  
-https://github.com/fuqunaga/GpuTrail.git?path=/Packages/GpuTrail
+`https://github.com/fuqunaga/GpuTrail.git?path=/Packages/GpuTrail`
 
 # Features
 
