@@ -1,4 +1,4 @@
-# GPUTrail
+# GpuTrail
 
 ComputeShader implementation trails for Unity
 
