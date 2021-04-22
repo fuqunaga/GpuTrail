@@ -1,0 +1,156 @@
+#pragma kernel UpdateVertex NUM_THREAD_X=128
+#pragma kernel ArgsBufferMultiply NUM_THREAD_X=1
+
+#pragma multi_compile_local __ GPUTRAIL_TRAIL_INDEX_ON
+
+#include "GpuTrailVertex.cginc"
+#include "GpuTrailCSInclude.cginc"
+#include "GpuTrailIndexInclude.cginc"
+
+////////////////////////////////////////////////////////////////////////////////
+// UpdateVertex
+////////////////////////////////////////////////////////////////////////////////
+StructuredBuffer<Trail> _TrailBuffer;
+StructuredBuffer<Node> _NodeBuffer;
+RWStructuredBuffer<Vertex> _VertexBuffer;
+
+float3 _ToCameraDir; // for orthographics camera
+float3 _CameraPos;   // for perspective camera
+float _StartWidth;
+float _EndWidth;
+uint _LodNodeStep;
+
+
+inline bool useToCameraDir()
+{
+	return all(_ToCameraDir == 0);
+}
+
+inline float3 calcToCameraDir(float3 pos)
+{
+	return useToCameraDir() ? normalize(_CameraPos - pos) : _ToCameraDir;
+}
+
+
+inline uint minusIdxInTrail(uint idx, uint minus)
+{
+	return (idx + _NodeNumPerTrail-minus) % _NodeNumPerTrail;
+}
+inline uint calcPrevIdxInTrail(uint idx)
+{
+	return minusIdxInTrail(idx, 1);
+}
+inline uint calcNextIdxInTrail(uint idx)
+{
+	return (idx + 1) % _NodeNumPerTrail;
+}
+
+inline uint calcNodeIdxFromInTrail(uint trailIdx, uint idxInTrail)
+{
+	return trailIdx * _NodeNumPerTrail + idxInTrail;
+}
+
+Node getNode(uint trailIdx, uint idxInTrail, uint totalInputNum)
+{
+	idxInTrail = min(idxInTrail, totalInputNum-1); // 未使用ノードのIdxが指定されたら最新のノードを返す 
+	return _NodeBuffer[calcNodeIdxFromInTrail(trailIdx, idxInTrail)];
+}
+
+float3 calcNodeDir(uint trailIdx, uint nodeIdxInTrail, uint totalInputNum)
+{
+	float3 dirPrev = float3(0,0,0);
+	float3 dirNext = float3(0,0,0);
+
+	float3 pos = getNode(trailIdx, nodeIdxInTrail, totalInputNum).pos;
+
+	uint prevIdxInTrail = calcPrevIdxInTrail(nodeIdxInTrail);
+	uint inputIdxInTrail = calcPrevIdxInTrail(totalInputNum);
+
+	bool prevEnable = (prevIdxInTrail != inputIdxInTrail) && (prevIdxInTrail < totalInputNum);
+	if ( prevEnable )
+	{
+		dirPrev = normalize(pos - getNode(trailIdx, prevIdxInTrail, totalInputNum).pos);
+	}
+
+	bool nextEnable = nodeIdxInTrail != inputIdxInTrail;
+	if ( nextEnable )
+	{
+		uint nextIdxInTrail = calcNextIdxInTrail(nodeIdxInTrail);
+		dirNext = normalize(getNode(trailIdx, nextIdxInTrail, totalInputNum).pos - pos);
+	}
+
+	return  normalize(dirPrev + dirNext);
+}
+
+
+
+[numthreads(NUM_THREAD_X,1,1)]
+void UpdateVertex(uint3 id : SV_DispatchThreadID)
+{
+	uint trailIdxBufferIdx = id.x;
+	if ( trailIdxBufferIdx < GetTrailNum() )
+	{
+		uint trailIdx = GetTrailIdx(trailIdxBufferIdx);
+
+		Trail trail = _TrailBuffer[trailIdx];
+		uint totalInputNum = trail.totalInputNum;
+
+		////////////////////////////////////////////////////////////
+		// Sequence newest node > oldest node
+		////////////////////////////////////////////////////////////
+		uint endNodeIdxInTrail = (totalInputNum - 1) % _NodeNumPerTrail;
+		uint vertexIdx = (((trailIdxBufferIdx+1) * (_NodeNumPerTrail / _LodNodeStep))-1) * 2;
+
+		Vertex v0 = GetDefaultVertex();
+		Vertex v1 = GetDefaultVertex();
+		uint count = _NodeNumPerTrail / _LodNodeStep;
+		for(uint i = 0; i<count; ++i)
+		{
+			uint nodeIdxInTrail = minusIdxInTrail(endNodeIdxInTrail, i * _LodNodeStep);
+
+			// Calc v0,v1
+			// Use previous v0,v1 if node has not been created yet.
+			if (nodeIdxInTrail < totalInputNum)
+			{
+				Node node = getNode(trailIdx, nodeIdxInTrail, totalInputNum);
+				//node.time = max(node.time, 0);
+				float life = min(_Life, _Time - trail.startTime);
+				float rate = life <= 0 ? 1 : max(0, 1 - ((_Time - node.time) / life));
+
+				float3 pos = node.pos;
+				float3 dir = calcNodeDir(trailIdx, nodeIdxInTrail, totalInputNum);
+
+				float3 toCameraDir = calcToCameraDir(pos);
+				float3 right = normalize(cross(dir, toCameraDir)) * lerp(_EndWidth, _StartWidth, rate) * 0.5f;
+
+				v0.pos = pos - right;
+				v0.uv = float2(rate, 0);
+				v0.color = node.color;
+
+				v1.pos = pos + right;
+				v1.uv = float2(rate, 1);
+				v1.color = node.color;
+			}
+
+			//v0.pos = float3(trailIdx, nodeIdxInTrail, totalInputNum);
+			//v1.pos = float3(4,5,6);
+
+			_VertexBuffer[vertexIdx] = v0;
+			_VertexBuffer[vertexIdx+1] = v1;
+			vertexIdx -= 2;
+		}
+	}
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+// ArgsBufferMultipy
+////////////////////////////////////////////////////////////////////////////////
+RWStructuredBuffer<uint> _ArgsBuffer;
+
+[numthreads(1,1,1)]
+void ArgsBufferMultiply()
+{
+	uint v = _ArgsBuffer[1];
+	_ArgsBuffer[1] = v * 2;
+}
