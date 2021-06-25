@@ -9,7 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 439476}
-  - component: {fileID: 7566415129091979739}
+  - component: {fileID: 231433863687058914}
   - component: {fileID: 4269517395967901056}
   m_Layer: 0
   m_Name: GpuTrail
@@ -32,7 +32,7 @@ Transform:
   m_Father: {fileID: 439478}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &7566415129091979739
+--- !u!114 &231433863687058914
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -41,7 +41,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 139476}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f60979323f34aae40ad138b75ec645be, type: 3}
+  m_Script: {fileID: 11500000, guid: f978293aae5743e4baebcb28d8e40609, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   gpuTrail:
@@ -50,7 +50,9 @@ MonoBehaviour:
     life: 10
     inputPerSec: 60
     minNodeDistance: 0.1
-  _debugDrawLogPoint: 0
+  gizmosSize: 0.5
+  gizmosDrawInputPos: 0
+  gizmosDrawNodePos: 0
 --- !u!114 &4269517395967901056
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -63,14 +65,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b564af979b749d34daa757bd2fc6bcd7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  computeShader: {fileID: 7200000, guid: 365dde5f666348548b6a22b895af03ad, type: 3}
-  material: {fileID: 2100000, guid: 5f6e1cac686a9714e9048568cfe33abf, type: 2}
+  trailIndexDispatcherCS: {fileID: 7200000, guid: 9c598b4732a0876409c0341e40cb2b3d,
+    type: 3}
+  calcLodCS: {fileID: 7200000, guid: 520ac2709c8d8744f94f20059d181905, type: 3}
+  cullingCS: {fileID: 7200000, guid: 29d6c2bf7e3e352488c9b6ca97a0a245, type: 3}
+  updateVertexCS: {fileID: 7200000, guid: 365dde5f666348548b6a22b895af03ad, type: 3}
+  defaultMaterial: {fileID: 2100000, guid: 5f6e1cac686a9714e9048568cfe33abf, type: 2}
   startWidth: 0.1
   endWidth: 0.1
+  lodSettings: []
+  appendNodeEnable: 1
   cullingEnable: 1
   updateVertexEnable: 1
   renderingEnable: 1
-  _debugDrawVertexBuf: 0
 --- !u!1 &139478
 GameObject:
   m_ObjectHideFlags: 0

@@ -5,11 +5,10 @@
         public GpuTrailExampleParticle particle;
         public bool particleGizmosEnable;
 
-        protected override void Start()
+        protected void Start()
         {
             particle.Init();
             gpuTrail.trailNum = particle.particleNum;
-            gpuTrail.Init();
         }
         protected override void OnDestroy()
         {
