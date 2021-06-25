@@ -46,6 +46,8 @@ namespace GpuTrailSystem
         public float startWidth = 0.1f;
         public float endWidth = 0.1f;
 
+        public Camera targetCamera;
+
         protected IGpuTrailAppendNode gpuTrailAppendNode;
 
         // Culling/CalcLod function can be customized.
@@ -69,7 +71,7 @@ namespace GpuTrailSystem
         public bool renderingEnable = true;
 
         protected GpuTrail gpuTrail => gpuTrailAppendNode.GpuTrail;
-        protected virtual Camera TargetCamera => Camera.main;
+        protected virtual Camera TargetCamera => targetCamera != null ? targetCamera : targetCamera = Camera.main;
 
 
         #region Unity
@@ -188,7 +190,7 @@ namespace GpuTrailSystem
                     var material = settings.material;
                     if (material == null) material = defaultMaterial;
 
-                    lod.OnRenderObject(material);
+                    lod.OnRenderObject(material, startWidth, endWidth);
                 });
             }
         }

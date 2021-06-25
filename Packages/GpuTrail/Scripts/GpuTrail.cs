@@ -48,6 +48,9 @@ namespace GpuTrailSystem
         public GraphicsBuffer inputBuffer_Color { get; protected set; }
 
 
+        public bool isInitialized => trailBuffer != null;
+
+
         public void Init()
         {
             nodeNumPerTrail = Mathf.CeilToInt(life * inputPerSec);

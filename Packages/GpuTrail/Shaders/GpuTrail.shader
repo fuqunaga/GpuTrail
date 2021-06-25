@@ -21,6 +21,9 @@ SubShader {
 		#include "UnityCG.cginc"
 		#include "GpuTrailShaderInclude.cginc"
 
+		float4 _StartColor;
+		float4 _EndColor;
+
 		struct vs_out {
 			float4 pos : SV_POSITION;
 			float4 col : COLOR;

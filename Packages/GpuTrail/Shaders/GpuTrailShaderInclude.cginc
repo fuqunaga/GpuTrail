@@ -3,8 +3,9 @@
 
 #include "GpuTrailVertex.cginc"
 
-float4 _StartColor;
-float4 _EndColor;
+float _StartWidth;
+float _EndWidth;
+
 uint _VertexNumPerTrail;
 StructuredBuffer<Vertex> _VertexBuffer;
 

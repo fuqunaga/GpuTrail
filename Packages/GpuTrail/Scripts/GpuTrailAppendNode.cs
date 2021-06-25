@@ -8,13 +8,7 @@ namespace GpuTrailSystem
         protected GpuTrail gpuTrail;
         public GpuTrail GpuTrail => gpuTrail;
 
-
         #region Unity
-
-        protected virtual void Start()
-        {
-            gpuTrail.Init();
-        }
 
         protected virtual void OnDestroy()
         {
@@ -31,6 +25,11 @@ namespace GpuTrailSystem
 
         public void AppendNode()
         {
+            if (!gpuTrail.isInitialized)
+            {
+                gpuTrail.Init();
+            }
+
             var updated = UpdateInputBuffer();
             if (updated)
             {

@@ -30,6 +30,8 @@ namespace GpuTrailSystem
 
         public static class ShaderParam
         {
+            public static readonly int StartWidth = Shader.PropertyToID("_StartWidth");
+            public static readonly int EndWidth = Shader.PropertyToID("_EndWidth");
             public static readonly int VertexNumPerTrail = Shader.PropertyToID("_VertexNumPerTrail");
             public static readonly int VertexBuffer = Shader.PropertyToID("_VertexBuffer");
 
@@ -223,13 +225,18 @@ namespace GpuTrailSystem
         }
 
 
-        public void OnRenderObject(Material material)
+        public void OnRenderObject(Material material, float startWidth, float endWidth)
         {
+            material.SetFloat(ShaderParam.StartWidth, startWidth);
+            material.SetFloat(ShaderParam.EndWidth, endWidth);
             material.SetInt(ShaderParam.VertexNumPerTrail, vertexNumPerTrail);
             material.SetBuffer(ShaderParam.VertexBuffer, vertexBuffer);
-            material.SetPass(0);
 
-            Graphics.DrawProceduralIndirectNow(MeshTopology.Triangles, indexBuffer, argsBuffer);
+            for (var i = 0; i < material.passCount; ++i)
+            {
+                material.SetPass(i);
+                Graphics.DrawProceduralIndirectNow(MeshTopology.Triangles, indexBuffer, argsBuffer);
+            }
         }
 
 
