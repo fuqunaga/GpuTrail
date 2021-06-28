@@ -14,6 +14,9 @@ namespace GpuTrailSystem
     {
         public static class CSParam
         {
+            public static readonly string Kernel_AppendNode = "AppendNode";
+            public static readonly string Keyword_IgnoreOrigin = "IGNORE_ORIGIN";
+
             public static readonly int TrailNum = Shader.PropertyToID("_TrailNum");
             public static readonly int NodeNumPerTrail = Shader.PropertyToID("_NodeNumPerTrail");
             public static readonly int Time = Shader.PropertyToID("_Time");
@@ -33,6 +36,8 @@ namespace GpuTrailSystem
         public float life = 10f;
         public float inputPerSec = 60f;
         public float minNodeDistance = 0.1f;
+        [Tooltip("Ignore (0,0,0) position input")]
+        public bool ignoreOriginInput = true;
 
 
         public int nodeNumPerTrail { get; protected set; }
@@ -104,6 +109,15 @@ namespace GpuTrailSystem
                 Init();
             }
 
+            if ( ignoreOriginInput)
+            {
+                cs.EnableKeyword(CSParam.Keyword_IgnoreOrigin);
+            }
+            else
+            {
+                cs.DisableKeyword(CSParam.Keyword_IgnoreOrigin);
+            }
+
             cs.SetInt(CSParam.TrailNum, trailNum);
             cs.SetInt(CSParam.NodeNumPerTrail, nodeNumPerTrail);
             cs.SetFloat(CSParam.MinNodeDistance, minNodeDistance);
@@ -119,7 +133,7 @@ namespace GpuTrailSystem
 
         public void DispatchAppendNode()
         {
-            var kernel = appendNodeCS.FindKernel("AppendNode");
+            var kernel = appendNodeCS.FindKernel(CSParam.Kernel_AppendNode);
             SetCSParams(appendNodeCS, kernel);
 
             ComputeShaderUtility.Dispatch(appendNodeCS, kernel, trailNum);

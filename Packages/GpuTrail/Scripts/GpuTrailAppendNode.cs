@@ -23,7 +23,7 @@ namespace GpuTrailSystem
         /// </summary>
         protected abstract bool UpdateInputBuffer();
 
-        public void AppendNode()
+        public virtual void AppendNode()
         {
             if (!gpuTrail.isInitialized)
             {

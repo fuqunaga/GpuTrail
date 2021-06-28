@@ -1,5 +1,7 @@
 ﻿#pragma kernel AppendNode NUM_THREAD_X=32
 
+#pragma multi_compile _ IGNORE_ORIGIN
+
 #include "GpuTrailCSInclude.cginc"
 
 StructuredBuffer<float3> _InputBuffer_Pos;
@@ -18,6 +20,11 @@ void AppendNode (uint3 id : SV_DispatchThreadID)
 		bool isFirst = (totalInputNum==0);
 
 		float3 inputPos = _InputBuffer_Pos[trailIdx];
+
+#ifdef IGNORE_ORIGIN
+		if (all(inputPos == 0)) return;
+#endif
+
 		if ( isFirst || (_MinNodeDistance <= distance(inputPos, _NodeBuffer[calcNodeIdx(trailIdx, totalInputNum-1)].pos)))
 		{
 			Node node;
