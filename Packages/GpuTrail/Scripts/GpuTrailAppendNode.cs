@@ -162,12 +162,15 @@ namespace GpuTrailSystem
 
         public void DrawGizmosInputPos(float radius)
         {
-            var datas = new Vector3[inputBuffer_Pos.count];
-            inputBuffer_Pos.GetData(datas);
-
-            for (var i = 0; i < datas.Length; ++i)
+            if (inputBuffer_Pos != null)
             {
-                Gizmos.DrawWireSphere(datas[i], radius);
+                var datas = new Vector3[inputBuffer_Pos.count];
+                inputBuffer_Pos.GetData(datas);
+
+                for (var i = 0; i < datas.Length; ++i)
+                {
+                    Gizmos.DrawWireSphere(datas[i], radius);
+                }
             }
         }
 

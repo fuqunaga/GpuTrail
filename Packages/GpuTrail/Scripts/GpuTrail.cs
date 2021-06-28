@@ -95,18 +95,21 @@ namespace GpuTrailSystem
 
         public void DrawGizmosNodePos(float radius)
         {
-            var datas = new Node[nodeBuffer.count];
-            nodeBuffer.GetData(datas);
-
-            var trails = new Trail[trailBuffer.count];
-            trailBuffer.GetData(trails);
-
-            for (var trailIdx = 0; trailIdx < trailNum; ++trailIdx)
+            if (nodeBuffer != null && trailBuffer != null)
             {
-                var totalInputNum = trails[trailIdx].totalInputNum;
-                for (var i = 0; i < totalInputNum; ++i)
+                var datas = new Node[nodeBuffer.count];
+                nodeBuffer.GetData(datas);
+
+                var trails = new Trail[trailBuffer.count];
+                trailBuffer.GetData(trails);
+
+                for (var trailIdx = 0; trailIdx < trailNum; ++trailIdx)
                 {
-                    Gizmos.DrawWireSphere(datas[nodeNumPerTrail * trailIdx + i].pos, radius);
+                    var totalInputNum = trails[trailIdx].totalInputNum;
+                    for (var i = 0; i < totalInputNum; ++i)
+                    {
+                        Gizmos.DrawWireSphere(datas[nodeNumPerTrail * trailIdx + i].pos, radius);
+                    }
                 }
             }
         }

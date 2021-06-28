@@ -345,13 +345,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 356296280}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -20}
+  m_LocalRotation: {x: -0.05717899, y: -0.58571744, z: -0.07855369, w: 0.8046708}
+  m_LocalPosition: {x: 10.33, y: -2.83, z: -4.5}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 0
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: -10.605, y: -71.78, z: -3.467}
 --- !u!1 &608905212
 GameObject:
   m_ObjectHideFlags: 0
@@ -491,7 +491,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   gpuTrail:
     trailNum: 1
-    life: 10
+    life: 1000
     inputPerSec: 150
     minNodeDistance: 0.1
   appendNodeCS: {fileID: 7200000, guid: d1a2d7e60a9bbd54e8a06cea0893efff, type: 3}
@@ -520,8 +520,8 @@ MonoBehaviour:
   cullingCS: {fileID: 7200000, guid: 29d6c2bf7e3e352488c9b6ca97a0a245, type: 3}
   updateVertexCS: {fileID: 7200000, guid: 365dde5f666348548b6a22b895af03ad, type: 3}
   defaultMaterial: {fileID: 2100000, guid: bb64f856f96e3ca4395c7b1ab1b4f542, type: 2}
-  startWidth: 0.1
-  endWidth: 0.1
+  startWidth: 1
+  endWidth: 1
   targetCamera: {fileID: 0}
   lodSettings: []
   appendNodeEnable: 1
