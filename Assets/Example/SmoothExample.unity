@@ -491,12 +491,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   gpuTrail:
     trailNum: 1
-    life: 10000
-    inputPerSec: 1
+    life: 10
+    inputPerSec: 150
     minNodeDistance: 0.1
   appendNodeCS: {fileID: 7200000, guid: d1a2d7e60a9bbd54e8a06cea0893efff, type: 3}
   colorEnable: 0
   ignoreOriginInput: 1
+  inputCountMax: 5
   gizmosSize: 0.5
   gizmosDrawInputPos: 0
   gizmosDrawNodePos: 0
@@ -715,7 +716,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1528504085}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -4.5000005, y: 2.2700005, z: -2.5895195}
+  m_LocalPosition: {x: -9.91, y: 4.71, z: -2.5895195}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 32339352}

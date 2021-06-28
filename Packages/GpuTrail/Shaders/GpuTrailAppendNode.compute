@@ -5,6 +5,7 @@
 
 #include "GpuTrailCSInclude.cginc"
 
+uint _InputCount;
 StructuredBuffer<float3> _InputBuffer_Pos;
 #ifdef COLOR_ENABLE
 StructuredBuffer<float4> _InputBuffer_Color;
@@ -20,28 +21,36 @@ void AppendNode (uint3 id : SV_DispatchThreadID)
 	{
 		Trail trail = _TrailBuffer[trailIdx];
 		uint totalInputNum = trail.totalInputNum;
-		bool isFirst = (totalInputNum==0);
 
-		float3 inputPos = _InputBuffer_Pos[trailIdx];
-
-#ifdef IGNORE_ORIGIN
-		if (all(inputPos == 0)) return;
-#endif
-
-		if ( isFirst || (_MinNodeDistance <= distance(inputPos, _NodeBuffer[calcNodeIdx(trailIdx, totalInputNum-1)].pos)))
+		for(uint i = 0; i<_InputCount; ++i)
 		{
-			Node node = (Node)0;
-			node.pos = inputPos;
-			node.time = _Time;
-#ifdef COLOR_ENABLE
-			node.color = _InputBuffer_Color[trailIdx];
-#endif
-			uint nodeIdx = calcNodeIdx(trailIdx, totalInputNum);
-			_NodeBuffer[nodeIdx] = node;
+			uint inputBufferIdx = _TrailNum * i + trailIdx;
+			float3 inputPos = _InputBuffer_Pos[inputBufferIdx];
 
-			trail.startTime = isFirst ? _Time : trail.startTime;
-			trail.totalInputNum++;
+	#ifdef IGNORE_ORIGIN
+			if (all(inputPos == 0)) continue;
+	#endif
 
+			bool isFirst = (totalInputNum==0);
+			if ( isFirst || (_MinNodeDistance <= distance(inputPos, _NodeBuffer[calcNodeIdx(trailIdx, totalInputNum-1)].pos)))
+			{
+				Node node = (Node)0;
+				node.pos = inputPos;
+				node.time = _Time;
+	#ifdef COLOR_ENABLE
+				node.color = _InputBuffer_Color[inputBufferIdx];
+	#endif
+				uint nodeIdx = calcNodeIdx(trailIdx, totalInputNum);
+				_NodeBuffer[nodeIdx] = node;
+
+				if (isFirst) trail.startTime = _Time;
+				totalInputNum++;
+			}
+		}
+
+		if( totalInputNum != trail.totalInputNum)
+		{
+			trail.totalInputNum = totalInputNum;
 			_TrailBuffer[trailIdx] = trail;
 		}
 	}

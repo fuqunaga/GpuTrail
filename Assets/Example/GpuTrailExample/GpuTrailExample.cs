@@ -17,10 +17,10 @@
         }
 
 
-        protected override bool UpdateInputBuffer()
+        protected override int UpdateInputBuffer()
         {
             particle.UpdateInputBuffer(inputBuffer_Pos);
-            return true;
+            return 1;
         }
 
 

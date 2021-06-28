@@ -9,7 +9,7 @@ namespace GpuTrailSystem
 
         void Start()
         {
-            GpuTrailEmitterGroup.RegisterEmitter(groupName, transform);
+            GpuTrailEmitterGroup.RegisterEmitter(groupName, this);
         }
     }
 }

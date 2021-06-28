@@ -12,6 +12,7 @@ namespace GpuTrailSystem
             public static readonly string Keyword_IgnoreOrigin = "IGNORE_ORIGIN";
             public static readonly string Keyword_ColorEnable = "COLOR_ENABLE";
 
+            public static readonly int InputCount = Shader.PropertyToID("_InputCount");
             public static readonly int InputBuffer_Pos = Shader.PropertyToID("_InputBuffer_Pos");
             public static readonly int InputBuffer_Color = Shader.PropertyToID("_InputBuffer_Color");
         }
@@ -26,9 +27,13 @@ namespace GpuTrailSystem
         public bool colorEnable;
         [Tooltip("Ignore (0,0,0) position input")]
         public bool ignoreOriginInput = true;
+        [Tooltip("Input position count per trail")]
+        public int inputCountMax = 1;
 
         public GraphicsBuffer inputBuffer_Pos { get; protected set; }
         public GraphicsBuffer inputBuffer_Color { get; protected set; }
+
+        protected int bufferSize => gpuTrail.trailNum  * inputCountMax;
 
         #region Unity
 
@@ -41,20 +46,22 @@ namespace GpuTrailSystem
         #endregion
 
 
-        void InitBuffers()
+        protected void InitBuffers()
         {
-            var trailNum = gpuTrail.trailNum;
-            inputBuffer_Pos = new GraphicsBuffer(GraphicsBuffer.Target.Structured, trailNum, Marshal.SizeOf<Vector3>());
-            inputBuffer_Pos.SetData(Enumerable.Repeat(default(Vector3), trailNum).ToArray());
+            ReleaseBuffers();
+
+            var size = bufferSize;
+            inputBuffer_Pos = new GraphicsBuffer(GraphicsBuffer.Target.Structured, size, Marshal.SizeOf<Vector3>());
+            inputBuffer_Pos.SetData(Enumerable.Repeat(default(Vector3), size).ToArray());
 
             if (colorEnable)
             {
-                inputBuffer_Color = new GraphicsBuffer(GraphicsBuffer.Target.Structured, trailNum, Marshal.SizeOf<Color>());
-                inputBuffer_Color.SetData(Enumerable.Repeat(Color.gray, trailNum).ToArray());
+                inputBuffer_Color = new GraphicsBuffer(GraphicsBuffer.Target.Structured, size, Marshal.SizeOf<Color>());
+                inputBuffer_Color.SetData(Enumerable.Repeat(Color.gray, size).ToArray());
             }
         }
 
-        void ReleaseBuffers()
+        protected void ReleaseBuffers()
         {
             if (inputBuffer_Pos != null) inputBuffer_Pos.Release();
             if (inputBuffer_Color != null) inputBuffer_Color.Release();
@@ -63,7 +70,8 @@ namespace GpuTrailSystem
         /// <summary>
         /// return true if inputBuffer has updated.
         /// </summary>
-        protected abstract bool UpdateInputBuffer();
+        /// <returns>max input count of trail</returns>
+        protected abstract int UpdateInputBuffer();
 
         public virtual void AppendNode()
         {
@@ -73,16 +81,16 @@ namespace GpuTrailSystem
                 InitBuffers();
             }
 
-            var updated = UpdateInputBuffer();
-            if (updated)
+            var inputCount = UpdateInputBuffer();
+            if (inputCount > 0)
             {
-                DispatchAppendNode();
+                DispatchAppendNode(inputCount);
             }
         }
 
 
 
-        public void SetCSParams(ComputeShader cs, int kernel)
+        public void SetCSParams(ComputeShader cs, int kernel, int inputCount)
         {
             gpuTrail.SetCSParams(cs, kernel);
 
@@ -90,6 +98,7 @@ namespace GpuTrailSystem
             SetKeyword(cs, CSParam.Keyword_ColorEnable, colorEnable);
             SetKeyword(cs, CSParam.Keyword_IgnoreOrigin, ignoreOriginInput);
 
+            cs.SetInt(CSParam.InputCount, inputCount);
             cs.SetBuffer(kernel, CSParam.InputBuffer_Pos, inputBuffer_Pos);
             if (colorEnable)
             {
@@ -110,10 +119,10 @@ namespace GpuTrailSystem
         }
 
 
-        public void DispatchAppendNode()
+        public void DispatchAppendNode(int inputCount)
         {
             var kernel = appendNodeCS.FindKernel(CSParam.Kernel_AppendNode);
-            SetCSParams(appendNodeCS, kernel);
+            SetCSParams(appendNodeCS, kernel, inputCount);
 
             ComputeShaderUtility.Dispatch(appendNodeCS, kernel, gpuTrail.trailNum);
 
