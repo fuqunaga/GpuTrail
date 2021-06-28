@@ -1,11 +1,14 @@
 ﻿#pragma kernel AppendNode NUM_THREAD_X=32
 
 #pragma multi_compile _ IGNORE_ORIGIN
+#pragma multi_compile _ COLOR_ENABLE
 
 #include "GpuTrailCSInclude.cginc"
 
 StructuredBuffer<float3> _InputBuffer_Pos;
+#ifdef COLOR_ENABLE
 StructuredBuffer<float4> _InputBuffer_Color;
+#endif
 RWStructuredBuffer<Trail> _TrailBuffer;
 RWStructuredBuffer<Node> _NodeBuffer;
 
@@ -27,10 +30,12 @@ void AppendNode (uint3 id : SV_DispatchThreadID)
 
 		if ( isFirst || (_MinNodeDistance <= distance(inputPos, _NodeBuffer[calcNodeIdx(trailIdx, totalInputNum-1)].pos)))
 		{
-			Node node;
+			Node node = (Node)0;
 			node.pos = inputPos;
 			node.time = _Time;
+#ifdef COLOR_ENABLE
 			node.color = _InputBuffer_Color[trailIdx];
+#endif
 			uint nodeIdx = calcNodeIdx(trailIdx, totalInputNum);
 			_NodeBuffer[nodeIdx] = node;
 

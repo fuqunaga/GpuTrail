@@ -359,7 +359,9 @@ MonoBehaviour:
   defaultMaterial: {fileID: 2100000, guid: 5f6e1cac686a9714e9048568cfe33abf, type: 2}
   startWidth: 0.1
   endWidth: 0.1
+  targetCamera: {fileID: 0}
   lodSettings: []
+  appendNodeEnable: 1
   cullingEnable: 0
   updateVertexEnable: 1
   renderingEnable: 1
@@ -390,11 +392,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   gpuTrail:
-    appendNodeCS: {fileID: 7200000, guid: d1a2d7e60a9bbd54e8a06cea0893efff, type: 3}
     trailNum: 1
     life: 10
     inputPerSec: 60
     minNodeDistance: 0.1
+  appendNodeCS: {fileID: 7200000, guid: d1a2d7e60a9bbd54e8a06cea0893efff, type: 3}
+  colorEnable: 0
+  ignoreOriginInput: 1
   gizmosSize: 0.5
   gizmosDrawInputPos: 0
   gizmosDrawNodePos: 0

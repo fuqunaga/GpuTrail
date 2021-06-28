@@ -490,12 +490,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   gpuTrail:
-    appendNodeCS: {fileID: 7200000, guid: d1a2d7e60a9bbd54e8a06cea0893efff, type: 3}
     trailNum: 1
     life: 10000
     inputPerSec: 1
     minNodeDistance: 0.1
-    ignoreOriginInput: 1
+  appendNodeCS: {fileID: 7200000, guid: d1a2d7e60a9bbd54e8a06cea0893efff, type: 3}
+  colorEnable: 0
+  ignoreOriginInput: 1
   gizmosSize: 0.5
   gizmosDrawInputPos: 0
   gizmosDrawNodePos: 0

@@ -59,7 +59,7 @@ namespace GpuTrailSystem
             }
 
 
-            gpuTrail.inputBuffer_Pos.SetData(posArray);
+            inputBuffer_Pos.SetData(posArray);
 
             return units.Any();
         }

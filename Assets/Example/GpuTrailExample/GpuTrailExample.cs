@@ -19,7 +19,7 @@
 
         protected override bool UpdateInputBuffer()
         {
-            particle.UpdateInputBuffer(gpuTrail.inputBuffer_Pos);
+            particle.UpdateInputBuffer(inputBuffer_Pos);
             return true;
         }
 
