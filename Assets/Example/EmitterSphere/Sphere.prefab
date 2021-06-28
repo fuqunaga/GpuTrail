@@ -9,8 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 439476}
-  - component: {fileID: 231433863687058914}
-  - component: {fileID: 4269517395967901056}
+  - component: {fileID: 6390954743484012546}
   m_Layer: 0
   m_Name: GpuTrail
   m_TagString: Untagged
@@ -32,7 +31,7 @@ Transform:
   m_Father: {fileID: 439478}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &231433863687058914
+--- !u!114 &6390954743484012546
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -41,43 +40,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 139476}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f978293aae5743e4baebcb28d8e40609, type: 3}
+  m_Script: {fileID: 11500000, guid: fd5e20c5d4b58ae4996d2d0c4f8b8627, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  gpuTrail:
-    appendNodeCS: {fileID: 7200000, guid: d1a2d7e60a9bbd54e8a06cea0893efff, type: 3}
-    trailNum: 1
-    life: 10
-    inputPerSec: 60
-    minNodeDistance: 0.1
-  gizmosSize: 0.5
-  gizmosDrawInputPos: 0
-  gizmosDrawNodePos: 0
---- !u!114 &4269517395967901056
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 139476}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b564af979b749d34daa757bd2fc6bcd7, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  trailIndexDispatcherCS: {fileID: 7200000, guid: 9c598b4732a0876409c0341e40cb2b3d,
-    type: 3}
-  calcLodCS: {fileID: 7200000, guid: 520ac2709c8d8744f94f20059d181905, type: 3}
-  cullingCS: {fileID: 7200000, guid: 29d6c2bf7e3e352488c9b6ca97a0a245, type: 3}
-  updateVertexCS: {fileID: 7200000, guid: 365dde5f666348548b6a22b895af03ad, type: 3}
-  defaultMaterial: {fileID: 2100000, guid: 5f6e1cac686a9714e9048568cfe33abf, type: 2}
-  startWidth: 0.1
-  endWidth: 0.1
-  lodSettings: []
-  appendNodeEnable: 1
-  cullingEnable: 1
-  updateVertexEnable: 1
-  renderingEnable: 1
+  groupName: Sphere
 --- !u!1 &139478
 GameObject:
   m_ObjectHideFlags: 0

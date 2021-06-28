@@ -346,7 +346,7 @@ Transform:
   - {fileID: 418943869}
   - {fileID: 1500030161}
   m_Father: {fileID: 0}
-  m_RootOrder: 2
+  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &310526802
 GameObject:
@@ -646,6 +646,91 @@ Transform:
   m_Father: {fileID: 214960285}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1265569626
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1265569629}
+  - component: {fileID: 1265569628}
+  - component: {fileID: 1265569627}
+  m_Layer: 0
+  m_Name: GpuTrailEmitterGroup
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1265569627
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1265569626}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b564af979b749d34daa757bd2fc6bcd7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  trailIndexDispatcherCS: {fileID: 7200000, guid: 9c598b4732a0876409c0341e40cb2b3d,
+    type: 3}
+  calcLodCS: {fileID: 7200000, guid: 520ac2709c8d8744f94f20059d181905, type: 3}
+  cullingCS: {fileID: 7200000, guid: 29d6c2bf7e3e352488c9b6ca97a0a245, type: 3}
+  updateVertexCS: {fileID: 7200000, guid: 365dde5f666348548b6a22b895af03ad, type: 3}
+  defaultMaterial: {fileID: 2100000, guid: 5f6e1cac686a9714e9048568cfe33abf, type: 2}
+  startWidth: 0.05
+  endWidth: 0.01
+  targetCamera: {fileID: 104940729}
+  lodSettings:
+  - enable: 1
+    startDistance: 0
+    lodNodeStep: 1
+    material: {fileID: 0}
+  appendNodeEnable: 1
+  cullingEnable: 0
+  updateVertexEnable: 1
+  renderingEnable: 1
+--- !u!114 &1265569628
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1265569626}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 14aa68c0537049340a0afe82786a7aa9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  gpuTrail:
+    appendNodeCS: {fileID: 7200000, guid: d1a2d7e60a9bbd54e8a06cea0893efff, type: 3}
+    trailNum: 10000
+    life: 10
+    inputPerSec: 60
+    minNodeDistance: 0.1
+    ignoreOriginInput: 1
+  gizmosSize: 0.5
+  gizmosDrawInputPos: 0
+  gizmosDrawNodePos: 0
+  groupName: Sphere
+--- !u!4 &1265569629
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1265569626}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 3
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1451545202
 GameObject:
   m_ObjectHideFlags: 0
@@ -657,7 +742,7 @@ GameObject:
   - component: {fileID: 1451545204}
   - component: {fileID: 1451545203}
   m_Layer: 0
-  m_Name: Generator
+  m_Name: SphereGenerator
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -690,7 +775,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 1
+  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1500030159
 GameObject:
