@@ -22,29 +22,51 @@ void AppendNode (uint3 id : SV_DispatchThreadID)
 		Trail trail = _TrailBuffer[trailIdx];
 		uint totalInputNum = trail.totalInputNum;
 
-		for(uint i = 0; i<_InputCount; ++i)
+
+		for(uint validCount = 0; validCount<_InputCount; ++validCount)
 		{
-			uint inputBufferIdx = _TrailNum * i + trailIdx;
+			uint inputBufferIdx = _TrailNum * validCount + trailIdx;
 			float3 inputPos = _InputBuffer_Pos[inputBufferIdx];
 
 	#ifdef IGNORE_ORIGIN
-			if (all(inputPos == 0)) continue;
+			if (all(inputPos == 0)) break;
 	#endif
+		}
 
-			bool isFirst = (totalInputNum==0);
-			if ( isFirst || (_MinNodeDistance <= distance(inputPos, _NodeBuffer[calcNodeIdx(trailIdx, totalInputNum-1)].pos)))
+
+		bool isFirst = (totalInputNum==0);
+		float lastTime = _Time;
+		float3 lastPos = (3.402823466e+38F).xxx;  // float max
+		if ( !isFirst)
+		{
+			Node lastNode = _NodeBuffer[calcNodeIdx(trailIdx, totalInputNum-1)];
+			lastTime = lastNode.time;
+			lastPos =lastNode.pos;
+		}
+		else if (validCount>0)
+		{
+			trail.startTime = _Time;
+		}
+
+
+		for(uint i = 0; i<validCount; ++i)
+		{
+			uint inputBufferIdx = _TrailNum * i + trailIdx;
+			float3 inputPos = _InputBuffer_Pos[inputBufferIdx];
+			
+			if ( _MinNodeDistance <= distance(inputPos, lastPos))
 			{
 				Node node = (Node)0;
 				node.pos = inputPos;
-				node.time = _Time;
+				node.time = lerp(lastTime, _Time, (float)(i+1)/validCount);
 	#ifdef COLOR_ENABLE
 				node.color = _InputBuffer_Color[inputBufferIdx];
 	#endif
 				uint nodeIdx = calcNodeIdx(trailIdx, totalInputNum);
 				_NodeBuffer[nodeIdx] = node;
-
-				if (isFirst) trail.startTime = _Time;
 				totalInputNum++;
+
+				lastPos = inputPos;
 			}
 		}
 
