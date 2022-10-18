@@ -19,7 +19,7 @@ SubShader {
 		#pragma fragment frag
 
 		#include "UnityCG.cginc"
-		#include "GpuTrailShaderInclude.cginc"
+		#include "GpuTrailShaderInclude.hlsl"
 
 		float4 _StartColor;
 		float4 _EndColor;

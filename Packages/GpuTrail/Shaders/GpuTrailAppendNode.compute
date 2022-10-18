@@ -3,7 +3,7 @@
 #pragma multi_compile _ IGNORE_ORIGIN
 #pragma multi_compile _ COLOR_ENABLE
 
-#include "GpuTrailCSInclude.cginc"
+#include "GpuTrailCSInclude.hlsl"
 
 uint _InputCount;
 StructuredBuffer<float3> _InputBuffer_Pos;

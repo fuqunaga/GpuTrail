@@ -3,9 +3,9 @@
 
 #pragma multi_compile_local __ GPUTRAIL_TRAIL_INDEX_ON
 
-#include "GpuTrailVertex.cginc"
-#include "GpuTrailCSInclude.cginc"
-#include "GpuTrailIndexInclude.cginc"
+#include "GpuTrailVertex.hlsl"
+#include "GpuTrailCSInclude.hlsl"
+#include "GpuTrailIndexInclude.hlsl"
 
 ////////////////////////////////////////////////////////////////////////////////
 // UpdateVertex

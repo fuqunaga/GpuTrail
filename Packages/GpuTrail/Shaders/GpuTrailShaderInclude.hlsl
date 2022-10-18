@@ -1,7 +1,7 @@
 ﻿#ifndef GPUTRAIL_VARIABLES_INCLUDED
 #define GPUTRAIL_VARIABLES_INCLUDED
 
-#include "GpuTrailVertex.cginc"
+#include "GpuTrailVertex.hlsl"
 
 float _StartWidth;
 float _EndWidth;

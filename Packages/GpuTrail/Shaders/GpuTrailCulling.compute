@@ -1,6 +1,6 @@
 ﻿#pragma kernel UpdateTrailIdxBuffer NUM_THREAD_X=32
 
-#include "GpuTrailCSInclude.cginc"
+#include "GpuTrailCSInclude.hlsl"
 
 
 ////////////////////////////////////////////////////////////////////////////////
