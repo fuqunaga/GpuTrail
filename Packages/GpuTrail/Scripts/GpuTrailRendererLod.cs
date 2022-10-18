@@ -3,17 +3,18 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using UnityEngine;
 using UnityEngine.Assertions;
+using UnityEngine.Pool;
 using UnityEngine.XR;
 
 namespace GpuTrailSystem
 {
-    public class GpuTrailRenderer_Lod : IDisposable
+    public class GpuTrailRendererLod : IDisposable
     {
         #region Static
 
-        public static class CSParam
+        public static class CsParam
         {
-            public static readonly string Kernel_UpdateVertex = "UpdateVertex";
+            public const string KernelUpdateVertex = "UpdateVertex";
 
             public static readonly int Time = Shader.PropertyToID("_Time");
             public static readonly int ToCameraDir = Shader.PropertyToID("_ToCameraDir");
@@ -24,7 +25,7 @@ namespace GpuTrailSystem
             public static readonly int LodNodeStep = Shader.PropertyToID("_LodNodeStep");
 
 
-            public static readonly string Kernel_ArgsBufferMultiply = "ArgsBufferMultiply";
+            public const string KernelArgsBufferMultiply = "ArgsBufferMultiply";
             public static readonly int ArgsBuffer = Shader.PropertyToID("_ArgsBuffer");
         }
 
@@ -51,14 +52,14 @@ namespace GpuTrailSystem
         protected GraphicsBuffer argsBuffer;
 
 
-        int lodNodeStep => lodSetting.lodNodeStep;
+        int LodNodeStep => lodSetting.lodNodeStep;
 
-        public int nodeNumPerTrailWithLod => gpuTrail.nodeNumPerTrail / lodNodeStep;
-        public int vertexNumPerTrail => nodeNumPerTrailWithLod * 2;
-        public int vertexBufferSize => gpuTrail.trailNum * vertexNumPerTrail;
-        public int indexNumPerTrail => (nodeNumPerTrailWithLod - 1) * 6;
+        public int NodeNumPerTrailWithLod => gpuTrail.NodeNumPerTrail / LodNodeStep;
+        public int VertexNumPerTrail => NodeNumPerTrailWithLod * 2;
+        public int VertexBufferSize => gpuTrail.trailNum * VertexNumPerTrail;
+        public int IndexNumPerTrail => (NodeNumPerTrailWithLod - 1) * 6;
 
-        public GpuTrailRenderer_Lod(GpuTrail gpuTrail, ComputeShader computeShader, GpuTrailRenderer.LodSetting lodSetting)
+        public GpuTrailRendererLod(GpuTrail gpuTrail, ComputeShader computeShader, GpuTrailRenderer.LodSetting lodSetting)
         {
             this.gpuTrail = gpuTrail;
             this.computeShader = computeShader;
@@ -75,23 +76,23 @@ namespace GpuTrailSystem
 
         protected void InitBufferIfNeed()
         {
-            if ((vertexBuffer != null) && (vertexBuffer.count == vertexBufferSize))
+            if ((vertexBuffer != null) && (vertexBuffer.count == VertexBufferSize))
             {
                 return;
             }
 
-            Assert.IsTrue(0 < lodNodeStep && lodNodeStep < gpuTrail.nodeNumPerTrail, $"Invalid lodNodeStep[{lodNodeStep}]");
+            Assert.IsTrue(0 < LodNodeStep && LodNodeStep < gpuTrail.NodeNumPerTrail, $"Invalid lodNodeStep[{LodNodeStep}]");
 
 
             ReleaseBuffers();
 
-            vertexBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, vertexBufferSize, Marshal.SizeOf<Vertex>()); // 1 node to 2 vtx(left,right)
+            vertexBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, VertexBufferSize, Marshal.SizeOf<Vertex>()); // 1 node to 2 vtx(left,right)
             vertexBuffer.SetData(Enumerable.Repeat(default(Vertex), vertexBuffer.count).ToArray());
 
             // 各Nodeの最後と次のNodeの最初はポリゴンを繋がないので-1
-            var indexData = new int[indexNumPerTrail];
+            var indexData = new int[IndexNumPerTrail];
             var iidx = 0;
-            for (var iNode = 0; iNode < nodeNumPerTrailWithLod - 1; ++iNode)
+            for (var iNode = 0; iNode < NodeNumPerTrailWithLod - 1; ++iNode)
             {
                 var offset = iNode * 2;
                 indexData[iidx++] = 0 + offset;
@@ -130,18 +131,18 @@ namespace GpuTrailSystem
                 toCameraDir = -camera.transform.forward;
             }
 
-            computeShader.SetFloat(CSParam.Time, Time.time);
+            computeShader.SetFloat(CsParam.Time, Time.time);
 
-            computeShader.SetVector(CSParam.ToCameraDir, toCameraDir);
-            computeShader.SetVector(CSParam.CameraPos, camera.transform.position);
+            computeShader.SetVector(CsParam.ToCameraDir, toCameraDir);
+            computeShader.SetVector(CsParam.CameraPos, camera.transform.position);
 
-            computeShader.SetFloat(CSParam.StartWidth, startWidth);
-            computeShader.SetFloat(CSParam.EndWidth, endWidth);
-            computeShader.SetInt(CSParam.LodNodeStep, lodNodeStep);
+            computeShader.SetFloat(CsParam.StartWidth, startWidth);
+            computeShader.SetFloat(CsParam.EndWidth, endWidth);
+            computeShader.SetInt(CsParam.LodNodeStep, LodNodeStep);
 
-            var kernel = computeShader.FindKernel(CSParam.Kernel_UpdateVertex);
+            var kernel = computeShader.FindKernel(CsParam.KernelUpdateVertex);
             gpuTrail.SetCSParams(computeShader, kernel);
-            computeShader.SetBuffer(kernel, CSParam.VertexBuffer, vertexBuffer);
+            computeShader.SetBuffer(kernel, CsParam.VertexBuffer, vertexBuffer);
 
             if (trailIndexBuffer != null)
             {
@@ -194,10 +195,10 @@ namespace GpuTrailSystem
 
             if (IsSinglePassInstancedRendering)
             {
-                var kernel_argsBufferMultiply = computeShader.FindKernel(CSParam.Kernel_ArgsBufferMultiply);
-                computeShader.SetBuffer(kernel_argsBufferMultiply, CSParam.ArgsBuffer, argsBuffer);
+                var kernelArgsBufferMultiply = computeShader.FindKernel(CsParam.KernelArgsBufferMultiply);
+                computeShader.SetBuffer(kernelArgsBufferMultiply, CsParam.ArgsBuffer, argsBuffer);
 
-                computeShader.Dispatch(kernel_argsBufferMultiply, 1, 1, 1);
+                computeShader.Dispatch(kernelArgsBufferMultiply, 1, 1, 1);
             }
 
             /*
@@ -207,21 +208,19 @@ namespace GpuTrailSystem
             */
         }
 
-        int[] tmpArgsData;
-
         public void ResetArgsBuffer()
         {
             InitBufferIfNeed();
 
-            if (tmpArgsData == null) tmpArgsData = new int[5];
+            using var _ = ListPool<int>.Get(out var argsList);
 
-            tmpArgsData[0] = indexNumPerTrail;
-            tmpArgsData[1] = gpuTrail.trailNum * (IsSinglePassInstancedRendering ? 2 : 1);
-            tmpArgsData[2] = 0;
-            tmpArgsData[3] = 0;
-            tmpArgsData[4] = 0;
+            argsList.Add(IndexNumPerTrail);
+            argsList.Add(gpuTrail.trailNum * (IsSinglePassInstancedRendering ? 2 : 1));
+            argsList.Add(0);
+            argsList.Add(0);
+            argsList.Add(0);
 
-            argsBuffer.SetData(tmpArgsData); // int[4]{ indexNumPerTrail, trailNum, 0, 0}
+            argsBuffer.SetData(argsList);
         }
 
 
@@ -229,7 +228,7 @@ namespace GpuTrailSystem
         {
             material.SetFloat(ShaderParam.StartWidth, startWidth);
             material.SetFloat(ShaderParam.EndWidth, endWidth);
-            material.SetInt(ShaderParam.VertexNumPerTrail, vertexNumPerTrail);
+            material.SetInt(ShaderParam.VertexNumPerTrail, VertexNumPerTrail);
             material.SetBuffer(ShaderParam.VertexBuffer, vertexBuffer);
 
             for (var i = 0; i < material.passCount; ++i)
@@ -242,7 +241,7 @@ namespace GpuTrailSystem
 
         #region Debug
 
-        public bool debugDrawVertexBuf;
+        public bool debugDrawVertexBuf = false;
 
         public void OnDrawGizmosSelected()
         {

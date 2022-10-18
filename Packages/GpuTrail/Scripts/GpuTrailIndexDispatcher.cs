@@ -11,17 +11,18 @@ namespace GpuTrailSystem
     {
         #region Static
 
-        public static class CSParam
+        public static class CsParam
         {
-            public static readonly string Kernel_CalcArgsBufferForCS = "CalcArgsBufferForCS";
+            public const string KernelCalcArgsBufferForCs = "CalcArgsBufferForCS";
             public static readonly int ThreadGroupSizeX = Shader.PropertyToID("_ThreadGroupSizeX");
             public static readonly int TotalThreadNum = Shader.PropertyToID("_TotalThreadNum");
+            // ReSharper disable once InconsistentNaming
             public static readonly int ArgsBufferForCS = Shader.PropertyToID("_ArgsBufferForCS");
         }
 
-        public static class CSIncludeParam
-        { 
-            public static readonly string Keyword_TrailIdxOn = "GPUTRAIL_TRAIL_INDEX_ON";
+        public static class CsIncludeParam
+        {
+            public const string KeywordTrailIdxOn = "GPUTRAIL_TRAIL_INDEX_ON";
             public static readonly int TrailIndexBuffer = Shader.PropertyToID("_TrailIndexBuffer");
             public static readonly int TrailNumBuffer = Shader.PropertyToID("_TrailNumBuffer");
         }
@@ -33,8 +34,8 @@ namespace GpuTrailSystem
         #endregion
 
 
-        GraphicsBuffer totalThreadNumBuffer;
-        GraphicsBuffer argsBuffer;
+        GraphicsBuffer _totalThreadNumBuffer;
+        GraphicsBuffer _argsBuffer;
 
 
 
@@ -42,18 +43,18 @@ namespace GpuTrailSystem
         {
             ReleaseBuffers();
 
-            totalThreadNumBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Raw, 1, sizeof(uint));
-            argsBuffer = new GraphicsBuffer(GraphicsBuffer.Target.IndirectArguments, 3, sizeof(uint));
-            argsBuffer.SetData(new[] { 1, 1, 1 });
+            _totalThreadNumBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Raw, 1, sizeof(uint));
+            _argsBuffer = new GraphicsBuffer(GraphicsBuffer.Target.IndirectArguments, 3, sizeof(uint));
+            _argsBuffer.SetData(new[] { 1, 1, 1 });
         }
 
         public void ReleaseBuffers()
         {
-            totalThreadNumBuffer?.Release();
-            argsBuffer?.Release();
+            _totalThreadNumBuffer?.Release();
+            _argsBuffer?.Release();
 
-            totalThreadNumBuffer = null;
-            argsBuffer = null;
+            _totalThreadNumBuffer = null;
+            _argsBuffer = null;
         }
 
         public void Dispose() => ReleaseBuffers();
@@ -66,16 +67,16 @@ namespace GpuTrailSystem
 
         void _Dispatch(ComputeShader cs, int kernel, int trailNum, GraphicsBuffer trailIndexBuffer) 
         {
-            if (totalThreadNumBuffer == null) InitBuffers();
+            if (_totalThreadNumBuffer == null) InitBuffers();
 
             var threadGroupSizeX = GetThreadGroupSizeX(cs, kernel);
 
             if (trailIndexBuffer != null)
             {
-                GraphicsBuffer.CopyCount(trailIndexBuffer, totalThreadNumBuffer, 0);
+                GraphicsBuffer.CopyCount(trailIndexBuffer, _totalThreadNumBuffer, 0);
 
                 UpdateArgsBuffer(trailIndexBuffer, threadGroupSizeX);
-                SetComputeShaderParameterEnable(cs, kernel, trailIndexBuffer, totalThreadNumBuffer);
+                SetComputeShaderParameterEnable(cs, kernel, trailIndexBuffer, _totalThreadNumBuffer);
             }
             else
             {
@@ -83,7 +84,7 @@ namespace GpuTrailSystem
                 SetComputeShaderParameterDisable(cs);
             }
 
-            cs.DispatchIndirect(kernel, argsBuffer);
+            cs.DispatchIndirect(kernel, _argsBuffer);
         }
 
 
@@ -95,16 +96,16 @@ namespace GpuTrailSystem
 
         void UpdateArgsBuffer(int trailNum, int threadGroupSizeX)
         {
-            totalThreadNumBuffer.SetData(new[] { trailNum });
-            argsBuffer.SetData(new[] { Mathf.CeilToInt((float)trailNum / threadGroupSizeX), 1, 1 });
+            _totalThreadNumBuffer.SetData(new[] { trailNum });
+            _argsBuffer.SetData(new[] { Mathf.CeilToInt((float)trailNum / threadGroupSizeX), 1, 1 });
         }
 
         public void UpdateArgsBuffer(GraphicsBuffer trailIndexBuffer, int threadGroupSizeX)
         {
-            var kernel = _computeShader.FindKernel(CSParam.Kernel_CalcArgsBufferForCS);
-            _computeShader.SetInt(CSParam.ThreadGroupSizeX, threadGroupSizeX);
-            _computeShader.SetBuffer(kernel, CSParam.TotalThreadNum, totalThreadNumBuffer);
-            _computeShader.SetBuffer(kernel, CSParam.ArgsBufferForCS, argsBuffer);
+            var kernel = _computeShader.FindKernel(CsParam.KernelCalcArgsBufferForCs);
+            _computeShader.SetInt(CsParam.ThreadGroupSizeX, threadGroupSizeX);
+            _computeShader.SetBuffer(kernel, CsParam.TotalThreadNum, _totalThreadNumBuffer);
+            _computeShader.SetBuffer(kernel, CsParam.ArgsBufferForCS, _argsBuffer);
 
             _computeShader.Dispatch(kernel, 1, 1, 1);
         }
@@ -112,14 +113,14 @@ namespace GpuTrailSystem
 
         public static void SetComputeShaderParameterEnable(ComputeShader cs, int kernel, GraphicsBuffer trailIndexBuffer, GraphicsBuffer trailNumBuffer)
         {
-            cs.EnableKeyword(CSIncludeParam.Keyword_TrailIdxOn);
-            cs.SetBuffer(kernel, CSIncludeParam.TrailIndexBuffer, trailIndexBuffer);
-            cs.SetBuffer(kernel, CSIncludeParam.TrailNumBuffer, trailNumBuffer);
+            cs.EnableKeyword(CsIncludeParam.KeywordTrailIdxOn);
+            cs.SetBuffer(kernel, CsIncludeParam.TrailIndexBuffer, trailIndexBuffer);
+            cs.SetBuffer(kernel, CsIncludeParam.TrailNumBuffer, trailNumBuffer);
         }
 
         public static void SetComputeShaderParameterDisable(ComputeShader cs)
         {
-            cs.DisableKeyword(CSIncludeParam.Keyword_TrailIdxOn);
+            cs.DisableKeyword(CsIncludeParam.KeywordTrailIdxOn);
         }
 
     }

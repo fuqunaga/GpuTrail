@@ -3,36 +3,35 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-
 namespace GpuTrailSystem
 {
-    public class GpuTrailRenderer_CalcLod : IDisposable
+    public class GpuTrailRendererCalcLod : IDisposable
     {
-        public static class CSParam
+        public static class CsParam
         {
-            public static readonly string Kernel_UpdateTrailLodBuffer = "UpdateTrailLodBuffer";
+            public const string KernelUpdateTrailLodBuffer = "UpdateTrailLodBuffer";
             public static readonly int CameraPos = Shader.PropertyToID("_CameraPos");
             public static readonly int LodDistanceBuffer = Shader.PropertyToID("_LodDistanceBuffer");
             public static readonly int TrailLodBufferW = Shader.PropertyToID("_TrailLodBufferW");
 
-            public static readonly string Kernel_UpdateTrailIndexBuffer = "UpdateTrailIndexBuffer";
+            public const string KernelUpdateTrailIndexBuffer = "UpdateTrailIndexBuffer";
             public static readonly int CurrentLod = Shader.PropertyToID("_CurrentLod");
             public static readonly int TrailLodBuffer = Shader.PropertyToID("_TrailLodBuffer");
             public static readonly int TrailIdxBufferAppend = Shader.PropertyToID("_TrailIdxBufferAppend");
         }
 
 
-        protected ComputeShader calcLodCS;
+        protected readonly ComputeShader calcLodCs;
 
         protected GraphicsBuffer lodDistanceBuffer;
         protected GraphicsBuffer trailLodBuffer;
-        protected List<GraphicsBuffer> trailIndexBuffers = new List<GraphicsBuffer>();
+        protected List<GraphicsBuffer> trailIndexBuffers = new();
 
-        protected readonly GpuTrailIndexDispatcher gpuTrailIndexArgs = new GpuTrailIndexDispatcher();
+        protected readonly GpuTrailIndexDispatcher gpuTrailIndexArgs = new();
 
 
 
-        public GpuTrailRenderer_CalcLod(ComputeShader calcLodCS) => this.calcLodCS = calcLodCS;
+        public GpuTrailRendererCalcLod(ComputeShader calcLodCs) => this.calcLodCs = calcLodCs;
 
 
         public void Dispose()
@@ -98,44 +97,44 @@ namespace GpuTrailSystem
         {
             lodDistanceBuffer.SetData(sortedDistances);
 
-            var kernel = calcLodCS.FindKernel(CSParam.Kernel_UpdateTrailLodBuffer);
-            gpuTrail.SetCSParams(calcLodCS, kernel);
-            calcLodCS.SetVector(CSParam.CameraPos, camera.transform.position);
-            calcLodCS.SetBuffer(kernel, CSParam.LodDistanceBuffer, lodDistanceBuffer);
-            calcLodCS.SetBuffer(kernel, CSParam.TrailLodBufferW, trailLodBuffer);
+            var kernel = calcLodCs.FindKernel(CsParam.KernelUpdateTrailLodBuffer);
+            gpuTrail.SetCSParams(calcLodCs, kernel);
+            calcLodCs.SetVector(CsParam.CameraPos, camera.transform.position);
+            calcLodCs.SetBuffer(kernel, CsParam.LodDistanceBuffer, lodDistanceBuffer);
+            calcLodCs.SetBuffer(kernel, CsParam.TrailLodBufferW, trailLodBuffer);
 
             if (trailIndexBuffer != null)
             {
-                gpuTrailIndexArgs.Dispatch(calcLodCS, kernel, trailIndexBuffer);
+                gpuTrailIndexArgs.Dispatch(calcLodCs, kernel, trailIndexBuffer);
             }
             else
             {
-                gpuTrailIndexArgs.Dispatch(calcLodCS, kernel, gpuTrail.trailNum);
+                gpuTrailIndexArgs.Dispatch(calcLodCs, kernel, gpuTrail.trailNum);
             }
         }
 
         protected void UpdateTrailIndexBuffers(IEnumerable<int> idxSequence, int trailNum, GraphicsBuffer trailIndexBufferForAll)
         {
-            var kernel = calcLodCS.FindKernel(CSParam.Kernel_UpdateTrailIndexBuffer);
+            var kernel = calcLodCs.FindKernel(CsParam.KernelUpdateTrailIndexBuffer);
 
             foreach (var idx in idxSequence)
             {
                 var trailIndexBufferForLod = trailIndexBuffers[idx];
                 trailIndexBufferForLod.SetCounterValue(0);
 
-                calcLodCS.SetInt(CSParam.CurrentLod, idx);
-                calcLodCS.SetBuffer(kernel, CSParam.TrailLodBuffer, trailLodBuffer);
-                calcLodCS.SetBuffer(kernel, CSParam.TrailIdxBufferAppend, trailIndexBufferForLod);
+                calcLodCs.SetInt(CsParam.CurrentLod, idx);
+                calcLodCs.SetBuffer(kernel, CsParam.TrailLodBuffer, trailLodBuffer);
+                calcLodCs.SetBuffer(kernel, CsParam.TrailIdxBufferAppend, trailIndexBufferForLod);
 
                 //ComputeShaderUtility.Dispatch(calcLodCS, kernel, trailNum);
 
                 if (trailIndexBufferForAll != null)
                 {
-                    gpuTrailIndexArgs.Dispatch(calcLodCS, kernel, trailIndexBufferForAll);
+                    gpuTrailIndexArgs.Dispatch(calcLodCs, kernel, trailIndexBufferForAll);
                 }
                 else
                 {
-                    gpuTrailIndexArgs.Dispatch(calcLodCS, kernel, trailNum);
+                    gpuTrailIndexArgs.Dispatch(calcLodCs, kernel, trailNum);
                 }
             }
 

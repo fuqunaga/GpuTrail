@@ -12,7 +12,7 @@ namespace GpuTrailSystem
     [Serializable]
     public class GpuTrail : IDisposable
     {
-        public static class CSParam
+        public static class CsParam
         {
             public static readonly int TrailNum = Shader.PropertyToID("_TrailNum");
             public static readonly int NodeNumPerTrail = Shader.PropertyToID("_NodeNumPerTrail");
@@ -31,19 +31,19 @@ namespace GpuTrailSystem
         public float minNodeDistance = 0.1f;
 
 
-        public int nodeNumPerTrail { get; protected set; }
-        public int nodeNumTotal => trailNum * nodeNumPerTrail;
+        public int NodeNumPerTrail { get; protected set; }
+        public int NodeNumTotal => trailNum * NodeNumPerTrail;
 
-        public GraphicsBuffer trailBuffer { get; protected set; }
+        public GraphicsBuffer TrailBuffer { get; protected set; }
 
-        public GraphicsBuffer nodeBuffer { get; protected set; }
+        public GraphicsBuffer NodeBuffer { get; protected set; }
 
-        public bool isInitialized => trailBuffer != null;
+        public bool IsInitialized => TrailBuffer != null;
 
 
         public void Init()
         {
-            nodeNumPerTrail = Mathf.CeilToInt(life * inputPerSec);
+            NodeNumPerTrail = Mathf.CeilToInt(life * inputPerSec);
             if (inputPerSec < Application.targetFrameRate)
             {
                 Debug.LogWarning($"inputPerSec({inputPerSec}) < targetFps({Application.targetFrameRate}): Trai adds a node every frame, so running at TargetFrameRate will overflow the buffer.");
@@ -62,32 +62,32 @@ namespace GpuTrailSystem
 
         protected virtual void InitBuffer()
         {
-            trailBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, trailNum, Marshal.SizeOf<Trail>());
-            trailBuffer.SetData(Enumerable.Repeat(default(Trail), trailNum).ToArray());
+            TrailBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, trailNum, Marshal.SizeOf<Trail>());
+            TrailBuffer.SetData(Enumerable.Repeat(default(Trail), trailNum).ToArray());
 
-            nodeBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, nodeNumTotal, Marshal.SizeOf<Node>());
-            nodeBuffer.SetData(Enumerable.Repeat(default(Node), nodeNumTotal).ToArray());
+            NodeBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, NodeNumTotal, Marshal.SizeOf<Node>());
+            NodeBuffer.SetData(Enumerable.Repeat(default(Node), NodeNumTotal).ToArray());
         }
 
 
 
         protected virtual void ReleaseBuffer()
         {
-            if (trailBuffer != null) trailBuffer.Release();
-            if (nodeBuffer != null) nodeBuffer.Release();
+            if (TrailBuffer != null) TrailBuffer.Release();
+            if (NodeBuffer != null) NodeBuffer.Release();
         }
 
 
         public void SetCSParams(ComputeShader cs, int kernel)
         {
-            cs.SetInt(CSParam.TrailNum, trailNum);
-            cs.SetInt(CSParam.NodeNumPerTrail, nodeNumPerTrail);
-            cs.SetFloat(CSParam.MinNodeDistance, minNodeDistance);
-            cs.SetFloat(CSParam.Time, Time.time);
-            cs.SetFloat(CSParam.Life, life);
+            cs.SetInt(CsParam.TrailNum, trailNum);
+            cs.SetInt(CsParam.NodeNumPerTrail, NodeNumPerTrail);
+            cs.SetFloat(CsParam.MinNodeDistance, minNodeDistance);
+            cs.SetFloat(CsParam.Time, Time.time);
+            cs.SetFloat(CsParam.Life, life);
 
-            cs.SetBuffer(kernel, CSParam.TrailBuffer, trailBuffer);
-            cs.SetBuffer(kernel, CSParam.NodeBuffer, nodeBuffer);
+            cs.SetBuffer(kernel, CsParam.TrailBuffer, TrailBuffer);
+            cs.SetBuffer(kernel, CsParam.NodeBuffer, NodeBuffer);
         }
 
 
@@ -95,20 +95,20 @@ namespace GpuTrailSystem
 
         public void DrawGizmosNodePos(float radius)
         {
-            if (nodeBuffer != null && trailBuffer != null)
+            if (NodeBuffer != null && TrailBuffer != null)
             {
-                var datas = new Node[nodeBuffer.count];
-                nodeBuffer.GetData(datas);
+                var datas = new Node[NodeBuffer.count];
+                NodeBuffer.GetData(datas);
 
-                var trails = new Trail[trailBuffer.count];
-                trailBuffer.GetData(trails);
+                var trails = new Trail[TrailBuffer.count];
+                TrailBuffer.GetData(trails);
 
                 for (var trailIdx = 0; trailIdx < trailNum; ++trailIdx)
                 {
                     var totalInputNum = trails[trailIdx].totalInputNum;
                     for (var i = 0; i < totalInputNum; ++i)
                     {
-                        Gizmos.DrawWireSphere(datas[nodeNumPerTrail * trailIdx + i].pos, radius);
+                        Gizmos.DrawWireSphere(datas[NodeNumPerTrail * trailIdx + i].pos, radius);
                     }
                 }
             }

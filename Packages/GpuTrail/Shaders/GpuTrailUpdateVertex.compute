@@ -14,7 +14,7 @@ StructuredBuffer<Trail> _TrailBuffer;
 StructuredBuffer<Node> _NodeBuffer;
 RWStructuredBuffer<Vertex> _VertexBuffer;
 
-float3 _ToCameraDir; // for orthographics camera
+float3 _ToCameraDir; // for orthographic camera
 float3 _CameraPos;   // for perspective camera
 float _StartWidth;
 float _EndWidth;

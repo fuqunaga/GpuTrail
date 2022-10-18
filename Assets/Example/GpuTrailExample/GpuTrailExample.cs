@@ -19,7 +19,7 @@
 
         protected override int UpdateInputBuffer()
         {
-            particle.UpdateInputBuffer(inputBuffer_Pos);
+            particle.UpdateInputBuffer(InputBufferPos);
             return 1;
         }
 

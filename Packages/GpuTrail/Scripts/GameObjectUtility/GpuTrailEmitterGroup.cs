@@ -2,8 +2,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Unity.Collections;
 using UnityEngine;
-using UnityEngine.Assertions;
-
 
 namespace GpuTrailSystem
 {
@@ -11,16 +9,16 @@ namespace GpuTrailSystem
     {
         #region Static
 
-        static readonly Dictionary<string, GpuTrailEmitterGroup> groupDic = new Dictionary<string, GpuTrailEmitterGroup>();
+        static readonly Dictionary<string, GpuTrailEmitterGroup> GroupDic = new();
 
         static void RegisterGroup(GpuTrailEmitterGroup group)
         {
-            groupDic[group.groupName] = group;
+            GroupDic[group.groupName] = group;
         }
 
         public static void RegisterEmitter(string groupName, GpuTrailEmitter emitter)
         {
-            if (groupDic.TryGetValue(groupName, out var trailGroup))
+            if (GroupDic.TryGetValue(groupName, out var trailGroup))
             {
                 trailGroup.Register(emitter);
             }
@@ -31,9 +29,9 @@ namespace GpuTrailSystem
 
         public string groupName;
 
-        readonly List<GpuTrailEmitter> emitters = new List<GpuTrailEmitter>();
-        readonly List<(Vector3, Vector3)> emitterPosLogs = new List<(Vector3, Vector3)>();
-        NativeArray<Vector3> posArray;
+        readonly List<GpuTrailEmitter> _emitters = new();
+        readonly List<(Vector3, Vector3)> _emitterPosLogs = new();
+        NativeArray<Vector3> _posArray;
 
         void Start()
         {
@@ -44,21 +42,21 @@ namespace GpuTrailSystem
         protected override void OnDestroy()
         {
             base.OnDestroy();
-            if (posArray != null) posArray.Dispose();
+            _posArray.Dispose();
         }
 
 
         void CheckBuffers()
         {
-            if (inputBuffer_Pos.count != bufferSize)
+            if (InputBufferPos.count != BufferSize)
             {
                 InitBuffers();
             }
 
-            if (!posArray.IsCreated || posArray.Length != inputBuffer_Pos.count)
+            if (!_posArray.IsCreated || _posArray.Length != InputBufferPos.count)
             {
-                if (posArray.IsCreated) posArray.Dispose();
-                posArray = new NativeArray<Vector3>(inputBuffer_Pos.count, Allocator.Persistent);
+                if (_posArray.IsCreated) _posArray.Dispose();
+                _posArray = new NativeArray<Vector3>(InputBufferPos.count, Allocator.Persistent);
             }
         }
 
@@ -73,60 +71,60 @@ namespace GpuTrailSystem
 
             CheckBuffers();
 
-            while (emitterPosLogs.Count < emitters.Count)
+            while (_emitterPosLogs.Count < _emitters.Count)
             {
-                emitterPosLogs.Add((default(Vector3), default(Vector3)));
+                _emitterPosLogs.Add((default(Vector3), default(Vector3)));
             }
 
 
             var trailNum = gpuTrail.trailNum;
 
-            for (var i = 0; i < emitters.Count; ++i)
+            for (var i = 0; i < _emitters.Count; ++i)
             {
                 var inputIdx = 0;
-                var emitter = emitters[i];
+                var emitter = _emitters[i];
                 if (emitter != null && emitter.enabled)
                 {
                     var pos = emitter.transform.position;
 
-                    var (prev0, prev1) = emitterPosLogs[i];
+                    var (prev0, prev1) = _emitterPosLogs[i];
                     var hasLog = prev0 != default && prev1 != default;
                     if (hasLog)
                     {
                         for (; inputIdx < inputCountMax; ++inputIdx)
                         {
                             var t = (float)(inputIdx + 1) / inputCountMax; //0:exclude 1:include
-                            posArray[trailNum * inputIdx + i] = Spline.CatmullRom(t, prev1, prev0, pos);
+                            _posArray[trailNum * inputIdx + i] = Spline.CatmullRom(t, prev1, prev0, pos);
                         }
                     }
                     else
                     {
-                        posArray[i] = pos;
+                        _posArray[i] = pos;
                         inputIdx++;
                     }
 
                     prev1 = prev0;
                     prev0 = pos;
-                    emitterPosLogs[i] = (prev0, prev1);
+                    _emitterPosLogs[i] = (prev0, prev1);
                 }
 
                 // fill ignore point
                 for (; inputIdx < inputCountMax; ++inputIdx)
                 {
-                    posArray[trailNum * inputIdx + i] = default;
+                    _posArray[trailNum * inputIdx + i] = default;
                 }
             }
 
 
-            inputBuffer_Pos.SetData(posArray);
+            InputBufferPos.SetData(_posArray);
 
-            return emitters.Any() ? inputCountMax : 0;
+            return _emitters.Any() ? inputCountMax : 0;
         }
 
 
         public void Register(GpuTrailEmitter emitter)
         {
-            emitters.Add(emitter);
+            _emitters.Add(emitter);
         }
     }
 }

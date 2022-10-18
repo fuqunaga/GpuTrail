@@ -1,15 +1,13 @@
-using System;
 using System.Linq;
 using UnityEngine;
 
-
 namespace GpuTrailSystem
 {
-    public class GpuTrailRenderer_Culling
+    public class GpuTrailRendererCulling
     {
-        public static class CSParam
+        public static class CsParam
         {
-            public static readonly string Kernel_UpdateTrailIdxBuffer = "UpdateTrailIdxBuffer";
+            public const string KernelUpdateTrailIdxBuffer = "UpdateTrailIdxBuffer";
             public static readonly int CameraFrustumNormals = Shader.PropertyToID("_CameraFrustumNormals");
             public static readonly int TrailWidth = Shader.PropertyToID("_TrailWidth");
             public static readonly int CameraPos = Shader.PropertyToID("_CameraPos");
@@ -17,14 +15,14 @@ namespace GpuTrailSystem
         }
 
 
-        protected ComputeShader cullingCS;
+        protected readonly ComputeShader cullingCs;
         protected GraphicsBuffer trailIndexBuffer;
 
-        public bool debugCameraPosLocalOffsetEnable;
-        public Vector3 debugCameraPosLocalOffset;
+        public bool debugCameraPosLocalOffsetEnable = default;
+        public Vector3 debugCameraPosLocalOffset = default;
 
 
-        public GpuTrailRenderer_Culling(ComputeShader cullingCS) => this.cullingCS = cullingCS;
+        public GpuTrailRendererCulling(ComputeShader cullingCs) => this.cullingCs = cullingCs;
 
         public void Dispose()
         {
@@ -39,7 +37,7 @@ namespace GpuTrailSystem
 
         void ReleaseBuffer()
         {
-            if (trailIndexBuffer != null) trailIndexBuffer.Release();
+            trailIndexBuffer?.Release();
         }
 
         public GraphicsBuffer CalcTrailIndexBuffer(Camera camera, GpuTrail gpuTrail, float trailWidth)
@@ -63,14 +61,14 @@ namespace GpuTrailSystem
 
             trailIndexBuffer.SetCounterValue(0);
 
-            var kernel = cullingCS.FindKernel(CSParam.Kernel_UpdateTrailIdxBuffer);
-            gpuTrail.SetCSParams(cullingCS, kernel);
-            cullingCS.SetFloat(CSParam.TrailWidth, trailWidth);
-            cullingCS.SetFloats(CSParam.CameraFrustumNormals, normalsFloat);
-            cullingCS.SetVector(CSParam.CameraPos, cameraPos);
-            cullingCS.SetBuffer(kernel, CSParam.TrailIndexBufferAppend, trailIndexBuffer);
+            var kernel = cullingCs.FindKernel(CsParam.KernelUpdateTrailIdxBuffer);
+            gpuTrail.SetCSParams(cullingCs, kernel);
+            cullingCs.SetFloat(CsParam.TrailWidth, trailWidth);
+            cullingCs.SetFloats(CsParam.CameraFrustumNormals, normalsFloat);
+            cullingCs.SetVector(CsParam.CameraPos, cameraPos);
+            cullingCs.SetBuffer(kernel, CsParam.TrailIndexBufferAppend, trailIndexBuffer);
 
-            ComputeShaderUtility.Dispatch(cullingCS, kernel, gpuTrail.trailNum);
+            ComputeShaderUtility.Dispatch(cullingCs, kernel, gpuTrail.trailNum);
 
             return trailIndexBuffer;
 

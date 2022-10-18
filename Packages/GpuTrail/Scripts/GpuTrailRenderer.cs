@@ -19,7 +19,7 @@ namespace GpuTrailSystem
     {
         #region Type Define
 
-        [System.Serializable]
+        [Serializable]
         public class LodSetting
         {
             public bool enable = true;
@@ -30,7 +30,7 @@ namespace GpuTrailSystem
             [Tooltip("The node steps to generate a vertex.\n1: all nodes, 2: 1/2 nodes, 3: 1/3 nodes...")]
             public int lodNodeStep = 1; // Node steps to generate a vertex.　1:all nodes, 2:1/2 nodes, 3:1/3 nodes...
 
-            [Tooltip("The lod specific material.\nIf null then GpuTrailRenderer.defaultmMaterial would be used.")]
+            [Tooltip("The lod specific material.\nIf null then GpuTrailRenderer.defaultMaterial would be used.")]
             public Material material;
         }
 
@@ -54,12 +54,12 @@ namespace GpuTrailSystem
         public Func<Camera, GpuTrail, float, GraphicsBuffer> calcTrailIndexBufferCulling;
         public Func<IEnumerable<float>, Camera, GpuTrail, GraphicsBuffer, IReadOnlyList<GraphicsBuffer>> calcTrailIndexBufferCalcLod;
 
-        protected GpuTrailRenderer_Culling defaultCulling;
-        protected GpuTrailRenderer_CalcLod defaultCalcLod;
+        protected GpuTrailRendererCulling defaultCulling;
+        protected GpuTrailRendererCalcLod defaultCalcLod;
         
         [SerializeField]
         protected List<LodSetting> lodSettings = new List<LodSetting>();
-        protected List<GpuTrailRenderer_Lod> lodList = new List<GpuTrailRenderer_Lod>();
+        protected List<GpuTrailRendererLod> lodList = new List<GpuTrailRendererLod>();
 
         protected Camera currentCameraOnRendering;
 
@@ -70,7 +70,7 @@ namespace GpuTrailSystem
         public bool updateVertexEnable = true;
         public bool renderingEnable = true;
 
-        protected GpuTrail gpuTrail => gpuTrailAppendNode.GpuTrail;
+        protected GpuTrail GpuTrail => gpuTrailAppendNode.GpuTrail;
         protected virtual Camera TargetCamera => targetCamera != null ? targetCamera : targetCamera = Camera.main;
 
 
@@ -120,12 +120,12 @@ namespace GpuTrailSystem
             {
                 if (calcTrailIndexBufferCulling == null)
                 {
-                    defaultCulling = new GpuTrailRenderer_Culling(cullingCS);
+                    defaultCulling = new GpuTrailRendererCulling(cullingCS);
                     calcTrailIndexBufferCulling = defaultCulling.CalcTrailIndexBuffer;
                 }
 
                 float width = Mathf.Max(startWidth, endWidth);
-                trailIndexBufferCulling = calcTrailIndexBufferCulling(TargetCamera, gpuTrail, width);
+                trailIndexBufferCulling = calcTrailIndexBufferCulling(TargetCamera, GpuTrail, width);
             }
 
 
@@ -136,11 +136,11 @@ namespace GpuTrailSystem
             {
                 if (calcTrailIndexBufferCalcLod == null)
                 {
-                    defaultCalcLod = new GpuTrailRenderer_CalcLod(calcLodCS);
+                    defaultCalcLod = new GpuTrailRendererCalcLod(calcLodCS);
                     calcTrailIndexBufferCalcLod = defaultCalcLod.CalcTrailIndexBuffers;
                 }
 
-                trailIndexBuffersLod = calcTrailIndexBufferCalcLod(lodSettings.Select(setting => setting.startDistance), TargetCamera, gpuTrail, trailIndexBufferCulling);
+                trailIndexBuffersLod = calcTrailIndexBufferCalcLod(lodSettings.Select(setting => setting.startDistance), TargetCamera, GpuTrail, trailIndexBufferCulling);
             }
 
 
@@ -208,7 +208,7 @@ namespace GpuTrailSystem
 
 
 
-        void ForeachLod(Action<GpuTrailRenderer_Lod, int> action)
+        void ForeachLod(Action<GpuTrailRendererLod, int> action)
         {
             for (var i = 0; i < lodList.Count; ++i)
             {
@@ -225,7 +225,7 @@ namespace GpuTrailSystem
         {
             DisposeLodList();
 
-            lodList = lodSettings.Select(settings => new GpuTrailRenderer_Lod(gpuTrail, updateVertexCS, settings)).ToList();
+            lodList = lodSettings.Select(settings => new GpuTrailRendererLod(GpuTrail, updateVertexCS, settings)).ToList();
         }
 
         void DisposeLodList()
@@ -235,9 +235,9 @@ namespace GpuTrailSystem
         }
 
 
-        private void OnBeginCameraRendering(ScriptableRenderContext context, Camera camera)
+        private void OnBeginCameraRendering(ScriptableRenderContext context, Camera currentCamera)
         {
-            currentCameraOnRendering = camera;
+            currentCameraOnRendering = currentCamera;
         }
 
 

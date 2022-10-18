@@ -6,15 +6,15 @@ namespace GpuTrailSystem
 {
     public abstract class GpuTrailAppendNode : MonoBehaviour, IGpuTrailAppendNode
     {
-        public static class CSParam
+        public static class CsParam
         {
-            public static readonly string Kernel_AppendNode = "AppendNode";
-            public static readonly string Keyword_IgnoreOrigin = "IGNORE_ORIGIN";
-            public static readonly string Keyword_ColorEnable = "COLOR_ENABLE";
+            public const string KernelAppendNode = "AppendNode";
+            public const string KeywordIgnoreOrigin = "IGNORE_ORIGIN";
+            public const string KeywordColorEnable = "COLOR_ENABLE";
 
             public static readonly int InputCount = Shader.PropertyToID("_InputCount");
-            public static readonly int InputBuffer_Pos = Shader.PropertyToID("_InputBuffer_Pos");
-            public static readonly int InputBuffer_Color = Shader.PropertyToID("_InputBuffer_Color");
+            public static readonly int InputBufferPos = Shader.PropertyToID("_InputBuffer_Pos");
+            public static readonly int InputBufferColor = Shader.PropertyToID("_InputBuffer_Color");
         }
 
 
@@ -30,10 +30,10 @@ namespace GpuTrailSystem
         [Tooltip("Input position count per trail")]
         public int inputCountMax = 1;
 
-        public GraphicsBuffer inputBuffer_Pos { get; protected set; }
-        public GraphicsBuffer inputBuffer_Color { get; protected set; }
+        public GraphicsBuffer InputBufferPos { get; protected set; }
+        public GraphicsBuffer InputBufferColor { get; protected set; }
 
-        protected int bufferSize => gpuTrail.trailNum  * inputCountMax;
+        protected int BufferSize => gpuTrail.trailNum  * inputCountMax;
 
         #region Unity
 
@@ -50,21 +50,21 @@ namespace GpuTrailSystem
         {
             ReleaseBuffers();
 
-            var size = bufferSize;
-            inputBuffer_Pos = new GraphicsBuffer(GraphicsBuffer.Target.Structured, size, Marshal.SizeOf<Vector3>());
-            inputBuffer_Pos.SetData(Enumerable.Repeat(default(Vector3), size).ToArray());
+            var size = BufferSize;
+            InputBufferPos = new GraphicsBuffer(GraphicsBuffer.Target.Structured, size, Marshal.SizeOf<Vector3>());
+            InputBufferPos.SetData(Enumerable.Repeat(default(Vector3), size).ToArray());
 
             if (colorEnable)
             {
-                inputBuffer_Color = new GraphicsBuffer(GraphicsBuffer.Target.Structured, size, Marshal.SizeOf<Color>());
-                inputBuffer_Color.SetData(Enumerable.Repeat(Color.gray, size).ToArray());
+                InputBufferColor = new GraphicsBuffer(GraphicsBuffer.Target.Structured, size, Marshal.SizeOf<Color>());
+                InputBufferColor.SetData(Enumerable.Repeat(Color.gray, size).ToArray());
             }
         }
 
         protected void ReleaseBuffers()
         {
-            if (inputBuffer_Pos != null) inputBuffer_Pos.Release();
-            if (inputBuffer_Color != null) inputBuffer_Color.Release();
+            if (InputBufferPos != null) InputBufferPos.Release();
+            if (InputBufferColor != null) InputBufferColor.Release();
         }
 
         /// <summary>
@@ -75,7 +75,7 @@ namespace GpuTrailSystem
 
         public virtual void AppendNode()
         {
-            if (!gpuTrail.isInitialized)
+            if (!gpuTrail.IsInitialized)
             {
                 PreInitGpuTrail();
                 gpuTrail.Init();
@@ -97,14 +97,14 @@ namespace GpuTrailSystem
             gpuTrail.SetCSParams(cs, kernel);
 
 
-            SetKeyword(cs, CSParam.Keyword_ColorEnable, colorEnable);
-            SetKeyword(cs, CSParam.Keyword_IgnoreOrigin, ignoreOriginInput);
+            SetKeyword(cs, CsParam.KeywordColorEnable, colorEnable);
+            SetKeyword(cs, CsParam.KeywordIgnoreOrigin, ignoreOriginInput);
 
-            cs.SetInt(CSParam.InputCount, inputCount);
-            cs.SetBuffer(kernel, CSParam.InputBuffer_Pos, inputBuffer_Pos);
+            cs.SetInt(CsParam.InputCount, inputCount);
+            cs.SetBuffer(kernel, CsParam.InputBufferPos, InputBufferPos);
             if (colorEnable)
             {
-                cs.SetBuffer(kernel, CSParam.InputBuffer_Color, inputBuffer_Color);
+                cs.SetBuffer(kernel, CsParam.InputBufferColor, InputBufferColor);
             }
         }
 
@@ -123,7 +123,7 @@ namespace GpuTrailSystem
 
         public void DispatchAppendNode(int inputCount)
         {
-            var kernel = appendNodeCS.FindKernel(CSParam.Kernel_AppendNode);
+            var kernel = appendNodeCS.FindKernel(CsParam.KernelAppendNode);
             SetCSParams(appendNodeCS, kernel, inputCount);
 
             ComputeShaderUtility.Dispatch(appendNodeCS, kernel, gpuTrail.trailNum);
@@ -164,14 +164,14 @@ namespace GpuTrailSystem
 
         public void DrawGizmosInputPos(float radius)
         {
-            if (inputBuffer_Pos != null)
+            if (InputBufferPos != null)
             {
-                var datas = new Vector3[inputBuffer_Pos.count];
-                inputBuffer_Pos.GetData(datas);
+                var data = new Vector3[InputBufferPos.count];
+                InputBufferPos.GetData(data);
 
-                for (var i = 0; i < datas.Length; ++i)
+                foreach (var t in data)
                 {
-                    Gizmos.DrawWireSphere(datas[i], radius);
+                    Gizmos.DrawWireSphere(t, radius);
                 }
             }
         }
