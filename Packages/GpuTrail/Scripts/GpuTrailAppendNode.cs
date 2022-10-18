@@ -77,6 +77,7 @@ namespace GpuTrailSystem
         {
             if (!gpuTrail.isInitialized)
             {
+                PreInitGpuTrail();
                 gpuTrail.Init();
                 InitBuffers();
             }
@@ -87,7 +88,8 @@ namespace GpuTrailSystem
                 DispatchAppendNode(inputCount);
             }
         }
-
+        
+        protected virtual void PreInitGpuTrail() {}
 
 
         public void SetCSParams(ComputeShader cs, int kernel, int inputCount)
