@@ -2,7 +2,7 @@
   "name": "ga.fuquna.gputrail",
   "displayName": "GpuTrail",
   "version": "1.1.1",
-  "unity": "2021.3",
+  "unity": "2022.2",
   "keywords": [
     "Gpu",
     "ComputeShader",
