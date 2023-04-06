@@ -52,19 +52,19 @@ namespace GpuTrailSystem
 
             var size = BufferSize;
             InputBufferPos = new GraphicsBuffer(GraphicsBuffer.Target.Structured, size, Marshal.SizeOf<Vector3>());
-            InputBufferPos.SetData(Enumerable.Repeat(default(Vector3), size).ToArray());
+            InputBufferPos.Fill(default(Vector3));
 
             if (colorEnable)
             {
                 InputBufferColor = new GraphicsBuffer(GraphicsBuffer.Target.Structured, size, Marshal.SizeOf<Color>());
-                InputBufferColor.SetData(Enumerable.Repeat(Color.gray, size).ToArray());
+                InputBufferColor.Fill(Color.gray);
             }
         }
 
         protected void ReleaseBuffers()
         {
-            if (InputBufferPos != null) InputBufferPos.Release();
-            if (InputBufferColor != null) InputBufferColor.Release();
+            InputBufferPos?.Release();
+            InputBufferColor?.Release();
         }
 
         /// <summary>

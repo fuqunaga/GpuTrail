@@ -63,18 +63,18 @@ namespace GpuTrailSystem
         protected virtual void InitBuffer()
         {
             TrailBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, trailNum, Marshal.SizeOf<Trail>());
-            TrailBuffer.SetData(Enumerable.Repeat(default(Trail), trailNum).ToArray());
+            TrailBuffer.Fill(default(Trail));
 
             NodeBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, NodeNumTotal, Marshal.SizeOf<Node>());
-            NodeBuffer.SetData(Enumerable.Repeat(default(Node), NodeNumTotal).ToArray());
+            NodeBuffer.Fill(default(Node));
         }
 
 
 
         protected virtual void ReleaseBuffer()
         {
-            if (TrailBuffer != null) TrailBuffer.Release();
-            if (NodeBuffer != null) NodeBuffer.Release();
+            TrailBuffer?.Release();
+            NodeBuffer?.Release();
         }
 
 

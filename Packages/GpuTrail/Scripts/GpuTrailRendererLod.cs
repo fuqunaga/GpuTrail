@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Runtime.InteropServices;
+using Unity.Collections;
 using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.Pool;
@@ -45,15 +46,17 @@ namespace GpuTrailSystem
         protected readonly GpuTrail gpuTrail;
         protected readonly ComputeShader computeShader;
         protected readonly GpuTrailRenderer.LodSetting lodSetting;
-        protected readonly GpuTrailIndexDispatcher gpuTrailIndexDispatcher = new GpuTrailIndexDispatcher();
+        protected readonly GpuTrailIndexDispatcher gpuTrailIndexDispatcher = new();
 
         protected GraphicsBuffer vertexBuffer;
         protected GraphicsBuffer indexBuffer;
         protected GraphicsBuffer argsBuffer;
 
 
-        int LodNodeStep => lodSetting.lodNodeStep;
+        private int LodNodeStep => lodSetting.lodNodeStep;
 
+        public MaterialPropertyBlock PropertyBlock { get; } = new();
+        
         public int NodeNumPerTrailWithLod => gpuTrail.NodeNumPerTrail / LodNodeStep;
         public int VertexNumPerTrail => NodeNumPerTrailWithLod * 2;
         public int VertexBufferSize => gpuTrail.trailNum * VertexNumPerTrail;
@@ -87,20 +90,21 @@ namespace GpuTrailSystem
             ReleaseBuffers();
 
             vertexBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, VertexBufferSize, Marshal.SizeOf<Vertex>()); // 1 node to 2 vtx(left,right)
-            vertexBuffer.SetData(Enumerable.Repeat(default(Vertex), vertexBuffer.count).ToArray());
+            vertexBuffer.Fill(default(Vertex));
 
             // 各Nodeの最後と次のNodeの最初はポリゴンを繋がないので-1
-            var indexData = new int[IndexNumPerTrail];
-            var iidx = 0;
+            using var indexData = new NativeArray<int>(IndexNumPerTrail, Allocator.Temp);
+            var indexSpan = indexData.AsSpan();
+            var idx = 0;
             for (var iNode = 0; iNode < NodeNumPerTrailWithLod - 1; ++iNode)
             {
                 var offset = iNode * 2;
-                indexData[iidx++] = 0 + offset;
-                indexData[iidx++] = 1 + offset;
-                indexData[iidx++] = 2 + offset;
-                indexData[iidx++] = 2 + offset;
-                indexData[iidx++] = 1 + offset;
-                indexData[iidx++] = 3 + offset;
+                indexSpan[idx++] = 0 + offset;
+                indexSpan[idx++] = 1 + offset;
+                indexSpan[idx++] = 2 + offset;
+                indexSpan[idx++] = 2 + offset;
+                indexSpan[idx++] = 1 + offset;
+                indexSpan[idx++] = 3 + offset;
             }
 
             indexBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Index | GraphicsBuffer.Target.Structured, indexData.Length, Marshal.SizeOf<uint>()); // 1 node to 2 triangles(6vertexs)
@@ -224,18 +228,19 @@ namespace GpuTrailSystem
         }
 
 
-        public void OnRenderObject(Material material, float startWidth, float endWidth)
+        public void Render(Material material, float startWidth, float endWidth, in Bounds bounds)
         {
-            material.SetFloat(ShaderParam.StartWidth, startWidth);
-            material.SetFloat(ShaderParam.EndWidth, endWidth);
-            material.SetInt(ShaderParam.VertexNumPerTrail, VertexNumPerTrail);
-            material.SetBuffer(ShaderParam.VertexBuffer, vertexBuffer);
-
-            for (var i = 0; i < material.passCount; ++i)
+            PropertyBlock.SetFloat(ShaderParam.StartWidth, startWidth);
+            PropertyBlock.SetFloat(ShaderParam.EndWidth, endWidth);
+            PropertyBlock.SetInt(ShaderParam.VertexNumPerTrail, VertexNumPerTrail);
+            PropertyBlock.SetBuffer(ShaderParam.VertexBuffer, vertexBuffer);
+            var renderParams = new RenderParams(material)
             {
-                material.SetPass(i);
-                Graphics.DrawProceduralIndirectNow(MeshTopology.Triangles, indexBuffer, argsBuffer);
-            }
+                matProps = PropertyBlock,
+                worldBounds = bounds
+            };
+            
+            Graphics.RenderPrimitivesIndexedIndirect(renderParams, MeshTopology.Triangles, indexBuffer, argsBuffer);
         }
 
 
