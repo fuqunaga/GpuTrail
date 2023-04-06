@@ -32,12 +32,9 @@ namespace GpuTrailSystem
         public static void Init(ComputeShader computeShader) => _computeShader = computeShader;
 
         #endregion
-
-
-        GraphicsBuffer _totalThreadNumBuffer;
-        GraphicsBuffer _argsBuffer;
-
-
+        
+        private GraphicsBuffer _totalThreadNumBuffer;
+        private GraphicsBuffer _argsBuffer;
 
         public void InitBuffers()
         {
@@ -60,12 +57,11 @@ namespace GpuTrailSystem
         public void Dispose() => ReleaseBuffers();
 
 
-
         public void Dispatch(ComputeShader cs, int kernel, int trailNum) => _Dispatch(cs, kernel, trailNum, null);
 
         public void Dispatch(ComputeShader cs, int kernel, GraphicsBuffer trailIndexBuffer) => _Dispatch(cs, kernel, 0, trailIndexBuffer);
 
-        void _Dispatch(ComputeShader cs, int kernel, int trailNum, GraphicsBuffer trailIndexBuffer) 
+        private void _Dispatch(ComputeShader cs, int kernel, int trailNum, GraphicsBuffer trailIndexBuffer) 
         {
             if (_totalThreadNumBuffer == null) InitBuffers();
 
@@ -88,13 +84,13 @@ namespace GpuTrailSystem
         }
 
 
-        int GetThreadGroupSizeX(ComputeShader cs, int kernel)
+        private static int GetThreadGroupSizeX(ComputeShader cs, int kernel)
         {
             cs.GetKernelThreadGroupSizes(kernel, out var x, out var _, out var _);
             return (int)x;
         }
 
-        void UpdateArgsBuffer(int trailNum, int threadGroupSizeX)
+        private void UpdateArgsBuffer(int trailNum, int threadGroupSizeX)
         {
             _totalThreadNumBuffer.SetData(new[] { trailNum });
             _argsBuffer.SetData(new[] { Mathf.CeilToInt((float)trailNum / threadGroupSizeX), 1, 1 });

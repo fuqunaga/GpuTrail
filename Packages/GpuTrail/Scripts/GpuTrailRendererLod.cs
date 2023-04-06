@@ -92,23 +92,36 @@ namespace GpuTrailSystem
             vertexBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, VertexBufferSize, Marshal.SizeOf<Vertex>()); // 1 node to 2 vtx(left,right)
             vertexBuffer.Fill(default(Vertex));
 
+            
+            indexBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Index | GraphicsBuffer.Target.Structured, IndexNumPerTrail, Marshal.SizeOf<uint>()); // 1 node to 2 triangles(6vertexs)
+            
+            
+#if UNITY_2022_2_OR_NEWER
+            using var indexArray = new NativeArray<int>(indexBuffer.count, Allocator.Temp);
+            var indices = indexArray.AsSpan();
+#else
+            var indices = new NativeArray<int>(IndexNumPerTrail, Allocator.Temp);
+#endif
             // 各Nodeの最後と次のNodeの最初はポリゴンを繋がないので-1
-            using var indexData = new NativeArray<int>(IndexNumPerTrail, Allocator.Temp);
-            var indexSpan = indexData.AsSpan();
             var idx = 0;
             for (var iNode = 0; iNode < NodeNumPerTrailWithLod - 1; ++iNode)
             {
                 var offset = iNode * 2;
-                indexSpan[idx++] = 0 + offset;
-                indexSpan[idx++] = 1 + offset;
-                indexSpan[idx++] = 2 + offset;
-                indexSpan[idx++] = 2 + offset;
-                indexSpan[idx++] = 1 + offset;
-                indexSpan[idx++] = 3 + offset;
+                indices[idx++] = 0 + offset;
+                indices[idx++] = 1 + offset;
+                indices[idx++] = 2 + offset;
+                indices[idx++] = 2 + offset;
+                indices[idx++] = 1 + offset;
+                indices[idx++] = 3 + offset;
             }
 
-            indexBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Index | GraphicsBuffer.Target.Structured, indexData.Length, Marshal.SizeOf<uint>()); // 1 node to 2 triangles(6vertexs)
-            indexBuffer.SetData(indexData);
+#if UNITY_2022_2_OR_NEWER
+            indexBuffer.SetData(indexArray);
+#else
+            indexBuffer.SetData(indices);
+            indices.Dispose();
+#endif
+
 
             argsBuffer = new GraphicsBuffer(GraphicsBuffer.Target.IndirectArguments, 5, sizeof(uint));
             ResetArgsBuffer();
