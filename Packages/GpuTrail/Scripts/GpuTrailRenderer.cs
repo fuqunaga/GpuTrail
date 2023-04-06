@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.Rendering;
 
 namespace GpuTrailSystem
 {
@@ -47,6 +46,8 @@ namespace GpuTrailSystem
         public float endWidth = 0.1f;
 
         public Camera targetCamera;
+        
+        public Bounds bounds = new(Vector3.zero, Vector3.one * 100000f);
 
         protected IGpuTrailAppendNode gpuTrailAppendNode;
 
@@ -58,11 +59,8 @@ namespace GpuTrailSystem
         protected GpuTrailRendererCalcLod defaultCalcLod;
         
         [SerializeField]
-        protected List<LodSetting> lodSettings = new List<LodSetting>();
-        protected List<GpuTrailRendererLod> lodList = new List<GpuTrailRendererLod>();
-
-        protected Camera currentCameraOnRendering;
-
+        protected List<LodSetting> lodSettings = new();
+        protected List<GpuTrailRendererLod> lodList = new();
 
         [Header("Debug")]
         public bool appendNodeEnable = true;
@@ -76,16 +74,6 @@ namespace GpuTrailSystem
 
         #region Unity
 
-        protected virtual void OnEnable()
-        {
-            RenderPipelineManager.beginCameraRendering += OnBeginCameraRendering;
-        }
-
-        protected virtual void OnDisable()
-        {
-            RenderPipelineManager.beginCameraRendering -= OnBeginCameraRendering;
-        }
-
         protected virtual void Start()
         {
             if (trailIndexDispatcherCS != null)
@@ -93,10 +81,7 @@ namespace GpuTrailSystem
                 GpuTrailIndexDispatcher.Init(trailIndexDispatcherCS);
             }
 
-            if (gpuTrailAppendNode == null)
-            {
-                gpuTrailAppendNode = GetComponent<IGpuTrailAppendNode>();
-            }
+            gpuTrailAppendNode ??= GetComponent<IGpuTrailAppendNode>();
 
             if (!lodSettings.Any()) lodSettings.Add(new LodSetting());
         }
@@ -106,13 +91,11 @@ namespace GpuTrailSystem
         {
             if (lodSettings.Count != lodList.Count) ResetLodList();
 
-
             // AppendNode
             if (appendNodeEnable)
             {
                 gpuTrailAppendNode.AppendNode();
             }
-
 
             // Culling
             GraphicsBuffer trailIndexBufferCulling = null;
@@ -128,7 +111,6 @@ namespace GpuTrailSystem
                 trailIndexBufferCulling = calcTrailIndexBufferCulling(TargetCamera, GpuTrail, width);
             }
 
-
             // CalcLod
             IReadOnlyList<GraphicsBuffer> trailIndexBuffersLod = null;
             bool needCalcLod = lodSettings.Count > 1;
@@ -142,8 +124,7 @@ namespace GpuTrailSystem
 
                 trailIndexBuffersLod = calcTrailIndexBufferCalcLod(lodSettings.Select(setting => setting.startDistance), TargetCamera, GpuTrail, trailIndexBufferCulling);
             }
-
-
+            
             // UpdateVertex
             if (updateVertexEnable)
             {
@@ -153,6 +134,7 @@ namespace GpuTrailSystem
                     lod.UpdateVertexBuffer(TargetCamera, startWidth, endWidth, trailIndexBuffer);
                 });
             }
+            
 
             // UpdateArgsBuffer
             ForeachLod((lod, idx) =>
@@ -167,20 +149,8 @@ namespace GpuTrailSystem
                     lod.ResetArgsBuffer();
                 }
             });
-        }
-
-        protected virtual void OnRenderObject()
-        {
-            if (Camera.current != null)
-            {
-                currentCameraOnRendering = Camera.current;
-            }
-
-            if ((currentCameraOnRendering == null) || (currentCameraOnRendering.cullingMask & (1 << gameObject.layer)) == 0)
-            {
-                return;
-            }
-
+            
+            // Rendering
             if (renderingEnable)
             {
                 ForeachLod((lod, idx) =>
@@ -190,11 +160,10 @@ namespace GpuTrailSystem
                     var material = settings.material;
                     if (material == null) material = defaultMaterial;
 
-                    lod.OnRenderObject(material, startWidth, endWidth);
+                    lod.Render(material, startWidth, endWidth, bounds);
                 });
             }
         }
-
 
         public virtual void OnDestroy()
         {
@@ -204,7 +173,6 @@ namespace GpuTrailSystem
         }
 
         #endregion
-
 
 
 
@@ -219,8 +187,6 @@ namespace GpuTrailSystem
             }
         }
 
-
-
         protected void ResetLodList()
         {
             DisposeLodList();
@@ -228,18 +194,11 @@ namespace GpuTrailSystem
             lodList = lodSettings.Select(settings => new GpuTrailRendererLod(GpuTrail, updateVertexCS, settings)).ToList();
         }
 
-        void DisposeLodList()
+        private void DisposeLodList()
         {
             lodList.ForEach(lod => lod.Dispose());
             lodList.Clear();
         }
-
-
-        private void OnBeginCameraRendering(ScriptableRenderContext context, Camera currentCamera)
-        {
-            currentCameraOnRendering = currentCamera;
-        }
-
 
 
         #region Debug
