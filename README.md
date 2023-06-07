@@ -11,8 +11,8 @@ Add the following address to UnitPackageManager.
 # Features
 
 ### View Frustum Culling
-![](https://github.com/fuqunaga/GPUTrail/blob/master/Documents/culling.webp)
+![](https://github.com/fuqunaga/GPUTrail/blob/main/Documents/culling.webp)
 
 ### LOD
-![](https://github.com/fuqunaga/GPUTrail/blob/master/Documents/lod.webp)
+![](https://github.com/fuqunaga/GPUTrail/blob/main/Documents/lod.webp)
 
