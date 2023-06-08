@@ -2,7 +2,7 @@
 
 ComputeShader implementation trails for Unity
 
-![](https://github.com/fuqunaga/GPUTrail/blob/master/Documents/gputrail.webp)
+![](/Documents/gputrail.webp)
 
 # Installation
 Add the following address to UnitPackageManager.  
@@ -11,8 +11,8 @@ Add the following address to UnitPackageManager.
 # Features
 
 ### View Frustum Culling
-![](https://github.com/fuqunaga/GPUTrail/blob/main/Documents/culling.webp)
+![](/Documents/culling.webp)
 
 ### LOD
-![](https://github.com/fuqunaga/GPUTrail/blob/main/Documents/lod.webp)
+![](/Documents/lod.webp)
 
